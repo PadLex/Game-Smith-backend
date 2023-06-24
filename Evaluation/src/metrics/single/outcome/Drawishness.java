@@ -12,7 +12,7 @@ import other.context.Context;
 import other.trial.Trial;
 
 /**
- * Percentage of games which end in a draw (not including timeouts).
+ * One minus the percentage of games which end in a draw (not including timeouts).
  * 
  * @author matthew.stephenson
  */
@@ -29,7 +29,7 @@ public class Drawishness extends Metric
 		super
 		(
 			"Drawishness", 
-			"Percentage of games which end in a draw (not including timeouts).", 
+			"One minus the percentage of games which end in a draw (not including timeouts).",
 			0.0, 
 			1.0,
 			Concept.Drawishness
@@ -74,7 +74,7 @@ public class Drawishness extends Metric
 				naturalDraws++;
 		}
 
-		return Double.valueOf(naturalDraws / trials.length);
+		return Double.valueOf(1 - (naturalDraws / trials.length)); // This method should return 1 if there are 0 draws, which is best
 	}
 
 	//-------------------------------------------------------------------------

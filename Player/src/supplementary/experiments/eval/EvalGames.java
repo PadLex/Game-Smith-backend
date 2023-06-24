@@ -9,6 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.rng.RandomProviderState;
@@ -59,7 +60,7 @@ public class EvalGames
 	)
 	{
 		final Evaluation evaluation = new Evaluation();
-		final List<Metric> metrics = evaluation.conceptMetrics();
+		final List<Metric> metrics = evaluation.dialogMetrics();
 		final ArrayList<Double> weights = new ArrayList<>();
 		for (int i = 0; i < metrics.size(); i++)
 			weights.add(Double.valueOf(1));
@@ -109,6 +110,115 @@ public class EvalGames
 		}
 	}
 	
+	//-------------------------------------------------------------------------
+
+	/**
+	 * Evaluates a given game, for in-code use only
+	 * @param game is the game to evaluate
+	 * @param weights is the array of weights by which to multiply each metric (weights must be in order of dialogMetrics() list)
+	 * i.e. (AdvantageP1, Balance, Completion, Drawishness, Timeouts, BoardCoverageDefault, DecisivenessMoves, IdealDuration, SkillTrace)
+	 * @param numGames is the number of games that are played (less will be faster, but less accurate AI)
+	 * @param thinkingTimeEach is the thinking time per player (less will be faster, but less accurate AI)
+	 * @param arrayForm makes the function return an array with a score for each metric without weight if true, else it returns a size-1
+	 * @param maxTurns is the maximum number of turns per game
+	 * @param useDatabaseGames allows for the use of database games for each game (if there are any)
+	 * array with the total weighted sum of metric scores
+	 * @return the metric evaluations, output form is determined by arrayForm parameter
+	 */
+	public static double[] getEvaluationScores(Game game, ArrayList<Double> weights, String aiType, int numGames, double thinkingTimeEach, int maxTurns, boolean useDatabaseGames, boolean arrayForm)
+	{
+		//TODO: load EvalResults csv to compare game evaluations, then maybe take average between BGG ratings of nearest 5 games
+		final Evaluation evaluation = new Evaluation();
+		final List<Metric> metrics = evaluation.dialogMetrics();
+		int numMetrics = metrics.size();
+		if(weights == null)
+		{
+			weights = new ArrayList<Double>();
+			for (int i = 0; i < numMetrics; i++) weights.add(1.0);
+		}
+		// in next line, if game has no game options (e.g. when generating a novel game), may be necessary to alter evaluateGame method to accept null gameOptions parameter
+		String scoresStringForm = evaluateGame(evaluation, new Report(), game, game.description().gameOptions().allOptionStrings(game.getOptions()), aiType, numGames, thinkingTimeEach, maxTurns, metrics, weights, useDatabaseGames);
+		String[] scoresArrayWithName = scoresStringForm.split(",");
+		String[] scoresList = Arrays.copyOfRange(scoresArrayWithName, 1, scoresArrayWithName.length);
+		double[] scores = Arrays.stream(scoresList).mapToDouble(Double::parseDouble).toArray();
+
+		// the next part just deals with outputting the scores that were weighted with 0 as 0 in the output array
+		if(arrayForm)
+		{
+			double[] outputScores = new double[numMetrics];
+			int outputIndex = 0;
+			int scoreIndex = 0;
+			while(outputIndex < numMetrics){
+				if(weights.get(outputIndex) == 0)
+				{
+					outputIndex++;
+				}
+				outputScores[outputIndex] = scores[scoreIndex];
+				scoreIndex++;
+				outputIndex++;
+			}
+			return outputScores;
+		}
+		else
+		{
+			double[] sum = new double[1];
+			for(int m = 0; m < scores.length; m++)
+			{
+				sum[0] += scores[m];
+			}
+			int num = scores.length;
+			if(num == 0) num = 1;
+			sum[0] /= num; // normalized to be in range 0 to 1
+			return sum;
+		}
+	}
+
+	/**
+	 * Very rough game evaluation, only uses some dialog metrics.  The exact parameters and used metrics have been acquired from testing, and are not necessarily precise.
+	 * @param game the game to evaluate
+	 * @return a score between 0 and 1 that is meant to be a rough estimate to how good a game is (1 is best)
+	 */
+	public static double defaultEvaluationFast(Game game)
+	{
+		// Here the game is initialized with a new context, and check if there even are legal moves
+		final Trial trial = new Trial(game);
+		final Context context = new Context(game, trial);
+		game.start(context);
+		if(game.moves(context).count() == 0) return 0.0;
+
+		ArrayList<Double> weights = new ArrayList<>();
+		{
+			weights.add(1.0); // AdvantageP1
+			weights.add(1.0); // Balance
+			weights.add(1.0); // Completion
+			weights.add(1.0); // Drawishness
+			weights.add(1.0); // Timeouts
+			weights.add(1.0); // BoardCoverageDefault
+			weights.add(1.0); // DecisivenessMoves
+			weights.add(0.0); // IdealDuration
+			weights.add(0.0); // SkillTrace
+		}
+		return getEvaluationScores(game, weights, "Random", 50, 3, 1000, true, false)[0];
+	}
+
+	public static double defaultEvaluationSlow(Game game)
+	{
+		// TODO: test parameters of getEvaluationScores to prioritize better evaluations of games - for deciding between close contenders of good games
+		ArrayList<Double> weights = new ArrayList<>();
+		{
+			weights.add(1.0); // AdvantageP1
+			weights.add(1.0); // Balance
+			weights.add(1.0); // Completion
+			weights.add(1.0); // Drawishness
+			weights.add(1.0); // Timeouts
+			weights.add(1.0); // BoardCoverageDefault
+			weights.add(1.0); // DecisivenessMoves
+			weights.add(1.0); // IdealDuration
+			weights.add(1.0); // SkillTrace
+		}
+		return getEvaluationScores(game, weights, "UCT", 10, 0.1, 100, true, false)[0];
+	}
+
 	//-------------------------------------------------------------------------
 	
 	/**
@@ -439,14 +549,16 @@ public class EvalGames
 	 */
 	public static void main(final String[] args)
 	{
+		// Game tictactoe =
+		//getEvaluationScore()
 		// Define options for arg parser
-		final CommandLineArgParse argParse = 
+		/*final CommandLineArgParse argParse =
 			new CommandLineArgParse
 			(
 				true,
 				"Evaluate all games in ludii using gameplay metrics."
 			);
-		
+
 		argParse.addOption(new ArgOption()
 				.withNames("--numTrials")
 				.help("Number of trials to run for each game.")
@@ -468,7 +580,7 @@ public class EvalGames
 		argParse.addOption(new ArgOption()
 				.withNames("--AIName")
 				.help("Name of the Agent to use.")
-				.withDefault("Ludii AI")
+				.withDefault("UCT")
 				.withNumVals(1)
 				.withType(OptionTypes.String));
 		argParse.addOption(new ArgOption()
@@ -477,7 +589,7 @@ public class EvalGames
 				.withDefault(Boolean.valueOf(true))
 				.withNumVals(1)
 				.withType(OptionTypes.Boolean));
-		
+
 		if (!argParse.parseArguments(args))
 			return;
 
@@ -486,7 +598,15 @@ public class EvalGames
 		final double thinkTime = argParse.getValueDouble("--thinkTime");
 		final String AIName = argParse.getValueString("--AIName");
 		final boolean useDatabaseGames = argParse.getValueBool("--useDatabaseGames");
-		
-		evaluateAllGames(null, numberTrials, maxTurns, thinkTime, AIName, useDatabaseGames);
+
+		evaluateAllGames(new Report(), numberTrials, maxTurns, thinkTime, AIName, useDatabaseGames);*/
+		Game tempGame = GameLoader.loadGameFromName("Hex.lud");
+		long startTime = System.currentTimeMillis();
+		System.out.println(defaultEvaluationFast(tempGame));
+		long endTimeFast = System.currentTimeMillis();
+		System.out.println("Fast evaluation time: " + ((endTimeFast - startTime) / 1000) + " seconds");
+		System.out.println(defaultEvaluationSlow(tempGame));
+		long endTimeSlow = System.currentTimeMillis();
+		System.out.println("Slow evaluation time: " + ((endTimeSlow - endTimeFast) / 1000) + " seconds");
 	}
 }

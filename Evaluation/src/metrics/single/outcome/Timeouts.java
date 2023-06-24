@@ -10,7 +10,7 @@ import other.concept.Concept;
 import other.trial.Trial;
 
 /**
- * Percentage of games which end via timeout.
+ * Once minus the percentage of games which end via timeout.
  * 
  * @author cambolbro and matthew.stephenson
  */
@@ -27,7 +27,7 @@ public class Timeouts extends Metric
 		super
 		(
 			"Timeouts", 
-			"Percentage of games which end via timeout.", 
+			"One minus the percentage of games which end via timeout.",
 			0.0, 
 			1.0,
 			Concept.Timeouts
@@ -58,7 +58,7 @@ public class Timeouts extends Metric
 				timeouts++;
 		}
 
-		return Double.valueOf(timeouts / trials.length);
+		return Double.valueOf(1 - (timeouts / trials.length)); // the more timeouts there are, the further this is from 1
 	}
 
 	//-------------------------------------------------------------------------

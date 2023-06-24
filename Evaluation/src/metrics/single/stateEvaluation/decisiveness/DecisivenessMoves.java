@@ -13,7 +13,7 @@ import other.context.Context;
 import other.trial.Trial;
 
 /**
- * Percentage number of moves after a winning player has a state evaluation above the decisiveness threshold.
+ * One minus the percentage number of moves after a winning player has a state evaluation above the decisiveness threshold.
  * 
  * @author matthew.stephenson
  */
@@ -30,7 +30,7 @@ public class DecisivenessMoves extends Metric
 		super
 		(
 			"Decisiveness Moves", 
-			"Percentage number of moves after a winning player has a state evaluation above the decisiveness threshold.", 
+			"One minus the percentage number of moves after a winning player has a state evaluation above the decisiveness threshold.",
 			0.0, 
 			1.0,
 			Concept.DecisivenessMoves
@@ -93,7 +93,7 @@ public class DecisivenessMoves extends Metric
 			avgDecisivenessThreshold += turnAboveDecisivenessthreshold/trial.generateRealMovesList().size();
 		}
 
-		return Double.valueOf(avgDecisivenessThreshold / trials.length);
+		return Double.valueOf(1 - (avgDecisivenessThreshold / trials.length)); // the fewer the moves after a game has been decided, the better
 	}
 
 	//-------------------------------------------------------------------------
