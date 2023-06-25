@@ -12,6 +12,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import game.functions.intArray.array.Array;
+import metrics.designer.IdealDuration;
+import metrics.designer.SkillTrace;
+import metrics.designer.Systematicity;
+import metrics.single.boardCoverage.BoardCoverageDefault;
+import metrics.single.outcome.*;
+import metrics.single.stateEvaluation.decisiveness.DecisivenessMoves;
 import org.apache.commons.rng.RandomProviderState;
 import org.apache.commons.rng.core.RandomProviderDefaultState;
 import org.json.JSONObject;
@@ -119,17 +126,16 @@ public class EvalGames
 	 * i.e. (AdvantageP1, Balance, Completion, Drawishness, Timeouts, BoardCoverageDefault, DecisivenessMoves, IdealDuration, SkillTrace)
 	 * @param numGames is the number of games that are played (less will be faster, but less accurate AI)
 	 * @param thinkingTimeEach is the thinking time per player (less will be faster, but less accurate AI)
-	 * @param arrayForm makes the function return an array with a score for each metric without weight if true, else it returns a size-1
 	 * @param maxTurns is the maximum number of turns per game
 	 * @param useDatabaseGames allows for the use of database games for each game (if there are any)
 	 * array with the total weighted sum of metric scores
+	 * @param arrayForm makes the function return an array with a score for each metric without weight if true, else it returns a size-1
 	 * @return the metric evaluations, output form is determined by arrayForm parameter
 	 */
-	public static double[] getEvaluationScores(Game game, ArrayList<Double> weights, String aiType, int numGames, double thinkingTimeEach, int maxTurns, boolean useDatabaseGames, boolean arrayForm)
+	public static double[] getEvaluationScores(Game game, List<Metric> metrics, ArrayList<Double> weights, String aiType, int numGames, double thinkingTimeEach, int maxTurns, boolean useDatabaseGames, boolean arrayForm)
 	{
 		//TODO: load EvalResults csv to compare game evaluations, then maybe take average between BGG ratings of nearest 5 games
 		final Evaluation evaluation = new Evaluation();
-		final List<Metric> metrics = evaluation.dialogMetrics();
 		int numMetrics = metrics.size();
 		if(weights == null)
 		{
@@ -186,6 +192,23 @@ public class EvalGames
 		game.start(context);
 		if(game.moves(context).count() == 0) return 0.0;
 
+		// setting up good default values for metrics
+		Systematicity systematicity = new Systematicity();
+		systematicity.setNumMatches(5);
+		systematicity.setMaxIterationMultiplier(1);
+		List<Metric> metrics = new ArrayList<>();
+		{
+			metrics.add(new AdvantageP1());
+			metrics.add(new Balance());
+			metrics.add(new Completion());
+			metrics.add(new Drawishness());
+			metrics.add(new Timeouts());
+			metrics.add(new BoardCoverageDefault());
+			metrics.add(new DecisivenessMoves());
+			metrics.add(new IdealDuration());
+			metrics.add(new SkillTrace());
+			metrics.add(systematicity);
+		}
 		ArrayList<Double> weights = new ArrayList<>();
 		{
 			weights.add(1.0); // AdvantageP1
@@ -197,12 +220,28 @@ public class EvalGames
 			weights.add(1.0); // DecisivenessMoves
 			weights.add(0.0); // IdealDuration
 			weights.add(0.0); // SkillTrace
+			weights.add(1.0); // Systematicity
 		}
-		return getEvaluationScores(game, weights, "Random", 50, 3, 1000, true, false)[0];
+		return getEvaluationScores(game, metrics, weights, "Random", 50, 3, 1000, true, false)[0];
 	}
 
 	public static double defaultEvaluationSlow(Game game)
 	{
+		SkillTrace skillTrace = new SkillTrace();
+		skillTrace.setNumTrialsPerMatch(10);
+		List<Metric> metrics = new ArrayList<>();
+		{
+			metrics.add(new AdvantageP1());
+			metrics.add(new Balance());
+			metrics.add(new Completion());
+			metrics.add(new Drawishness());
+			metrics.add(new Timeouts());
+			metrics.add(new BoardCoverageDefault());
+			metrics.add(new DecisivenessMoves());
+			metrics.add(new IdealDuration());
+			metrics.add(skillTrace);
+			metrics.add(new Systematicity());
+		}
 		// TODO: test parameters of getEvaluationScores to prioritize better evaluations of games - for deciding between close contenders of good games
 		ArrayList<Double> weights = new ArrayList<>();
 		{
@@ -215,8 +254,9 @@ public class EvalGames
 			weights.add(1.0); // DecisivenessMoves
 			weights.add(1.0); // IdealDuration
 			weights.add(1.0); // SkillTrace
+			weights.add(1.0); // Systematicity
 		}
-		return getEvaluationScores(game, weights, "UCT", 10, 0.1, 100, true, false)[0];
+		return getEvaluationScores(game, metrics, weights, "UCT", 10, 0.1, 100, true, false)[0];
 	}
 
 	//-------------------------------------------------------------------------
