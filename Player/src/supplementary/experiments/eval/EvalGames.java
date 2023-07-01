@@ -40,6 +40,7 @@ import metrics.Metric;
 import other.AI;
 import other.GameLoader;
 import other.RankUtils;
+import other.action.others.ActionPass;
 import other.context.Context;
 import other.move.Move;
 import other.trial.Trial;
@@ -54,6 +55,8 @@ import utils.DBGameInfo;
 public class EvalGames
 {
 	final static String outputFilePath = "EvalResults.csv";		//"../Mining/res/evaluation/Results.csv";
+
+	static String[][] bggRatingDatabase = null;
 	
 	//-------------------------------------------------------------------------
 	
@@ -190,12 +193,9 @@ public class EvalGames
 		final Trial trial = new Trial(game);
 		final Context context = new Context(game, trial);
 		game.start(context);
-		if(game.moves(context).count() == 0) return 0.0;
+		if(game.moves(context).count() == 0 || (game.moves(context).count() == 1 && ((ActionPass) game.moves(context).get(0).actions().get(0)).isForced())) return 0.0;
 
 		// setting up good default values for metrics
-		Systematicity systematicity = new Systematicity();
-		systematicity.setNumMatches(5);
-		systematicity.setMaxIterationMultiplier(1);
 		List<Metric> metrics = new ArrayList<>();
 		{
 			metrics.add(new AdvantageP1());
@@ -207,7 +207,7 @@ public class EvalGames
 			metrics.add(new DecisivenessMoves());
 			metrics.add(new IdealDuration());
 			metrics.add(new SkillTrace());
-			metrics.add(systematicity);
+			metrics.add(new Systematicity());
 		}
 		ArrayList<Double> weights = new ArrayList<>();
 		{
@@ -215,20 +215,26 @@ public class EvalGames
 			weights.add(1.0); // Balance
 			weights.add(1.0); // Completion
 			weights.add(1.0); // Drawishness
-			weights.add(1.0); // Timeouts
+			weights.add(0.0); // Timeouts
 			weights.add(1.0); // BoardCoverageDefault
-			weights.add(1.0); // DecisivenessMoves
+			weights.add(0.0); // DecisivenessMoves
 			weights.add(0.0); // IdealDuration
 			weights.add(0.0); // SkillTrace
-			weights.add(1.0); // Systematicity
+			weights.add(0.0); // Systematicity
 		}
 		return getEvaluationScores(game, metrics, weights, "Random", 50, 3, 1000, true, false)[0];
 	}
 
 	public static double defaultEvaluationSlow(Game game)
 	{
+		final Trial trial = new Trial(game);
+		final Context context = new Context(game, trial);
+		game.start(context);
+		if(game.moves(context).count() == 0 || (game.moves(context).count() == 1 && ((ActionPass) game.moves(context).get(0).actions().get(0)).isForced())) return 0.0;
+
 		SkillTrace skillTrace = new SkillTrace();
-		skillTrace.setNumTrialsPerMatch(10);
+		skillTrace.setNumTrialsPerMatch(5);
+		skillTrace.setHardTimeLimit(60);
 		List<Metric> metrics = new ArrayList<>();
 		{
 			metrics.add(new AdvantageP1());
@@ -259,6 +265,10 @@ public class EvalGames
 		return getEvaluationScores(game, metrics, weights, "UCT", 10, 0.1, 100, true, false)[0];
 	}
 
+	public static double recommendScore(Game game)
+	{
+		return 0.0;
+	}
 	//-------------------------------------------------------------------------
 	
 	/**
@@ -640,7 +650,7 @@ public class EvalGames
 		final boolean useDatabaseGames = argParse.getValueBool("--useDatabaseGames");
 
 		evaluateAllGames(new Report(), numberTrials, maxTurns, thinkTime, AIName, useDatabaseGames);*/
-		Game tempGame = GameLoader.loadGameFromName("Hex.lud");
+		Game tempGame = GameLoader.loadGameFromName("TriHex.lud");
 		long startTime = System.currentTimeMillis();
 		System.out.println(defaultEvaluationFast(tempGame));
 		long endTimeFast = System.currentTimeMillis();
