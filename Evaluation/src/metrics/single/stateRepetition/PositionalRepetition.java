@@ -90,7 +90,7 @@ public class PositionalRepetition extends Metric
 			avgStateRepeats += 1.0 - (numUniqueStates / numTotalStates);
 		}
 
-		return Double.valueOf(avgStateRepeats / trials.length);
+		return Double.valueOf(1 - (avgStateRepeats / trials.length));
 	}
 
 	//-------------------------------------------------------------------------

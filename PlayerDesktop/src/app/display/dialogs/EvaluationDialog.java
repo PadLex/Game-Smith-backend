@@ -60,6 +60,8 @@ public class EvaluationDialog extends JDialog
 	final JTextField textFieldNumTrialsPerMatch;
 	final JTextField textFieldHardTimeLimit;
 	final JTextField txtcommonresoutput;
+
+	final JTextField numberOfNeighbors;
 	
 	//-------------------------------------------------------------------------
 
@@ -91,7 +93,7 @@ public class EvaluationDialog extends JDialog
 		final ArrayList<Double> weights = new ArrayList<>();
 
 		final JButton okButton;
-		setBounds(100, 100, 780, DesktopApp.frame().getHeight());
+		setBounds(100, 100, 780, 730);
 		getContentPane().setLayout(new BorderLayout());
 		
 		final JPanel panel = new JPanel();
@@ -115,7 +117,7 @@ public class EvaluationDialog extends JDialog
 		textFieldNumberTrials.setColumns(10);
 		
 		final JLabel lblAiModes = new JLabel("AI Agents");
-		lblAiModes.setBounds(26, 169, 91, 15);
+		lblAiModes.setBounds(26, 149, 91, 15);
 		LeftPanel.add(lblAiModes);
 		
 		final JComboBox<String> comboBoxAIAgents = new JComboBox<String>();
@@ -125,7 +127,7 @@ public class EvaluationDialog extends JDialog
 		comboBoxAIAgents.addItem("Strong AI");
 		comboBoxAIAgents.addItem("Very strong AI");
 		comboBoxAIAgents.addItem("Custom");
-		comboBoxAIAgents.setBounds(220, 164, 162, 24);
+		comboBoxAIAgents.setBounds(220, 144, 162, 24);
 		comboBoxAIAgents.setEnabled(true);
 		LeftPanel.add(comboBoxAIAgents);
 		
@@ -146,91 +148,91 @@ public class EvaluationDialog extends JDialog
 		LeftPanel.add(separator);
 		
 		final JLabel labelThinkTime = new JLabel("Agent Think Time");
-		labelThinkTime.setBounds(26, 252, 175, 15);
+		labelThinkTime.setBounds(26, 232, 175, 15);
 		LeftPanel.add(labelThinkTime);
 		
 		textFieldThinkTime = new JTextField();
 		textFieldThinkTime.setEnabled(false);
 		textFieldThinkTime.setText("0.5");
 		textFieldThinkTime.setColumns(10);
-		textFieldThinkTime.setBounds(220, 250, 162, 19);
+		textFieldThinkTime.setBounds(220, 230, 162, 19);
 		LeftPanel.add(textFieldThinkTime);
 		
 		final JLabel lblAiAlgorithm = new JLabel("AI Algorithm");
-		lblAiAlgorithm.setBounds(26, 212, 91, 15);
+		lblAiAlgorithm.setBounds(26, 192, 91, 15);
 		LeftPanel.add(lblAiAlgorithm);
 		final String[] comboBoxContents = DesktopGUIUtil.getAIDropdownStrings(app, false).toArray(new String[DesktopGUIUtil.getAIDropdownStrings(app, false).size()]);
 		final JComboBox<String> comboBoxAlgorithm = new JComboBox<String>(comboBoxContents); //comboBoxContents
 		comboBoxAlgorithm.setEnabled(false);
-		comboBoxAlgorithm.setBounds(220, 207, 162, 24);
+		comboBoxAlgorithm.setBounds(220, 187, 162, 24);
 		LeftPanel.add(comboBoxAlgorithm);
 		
 		final JLabel lblIdealTurnNumber = new JLabel("Ideal Turn Range");
-		lblIdealTurnNumber.setBounds(26, 331, 175, 15);
+		lblIdealTurnNumber.setBounds(26, 291, 175, 15);
 		LeftPanel.add(lblIdealTurnNumber);
 		
 		final JLabel lblMinimum = new JLabel("Minimum");
-		lblMinimum.setBounds(26, 357, 175, 15);
+		lblMinimum.setBounds(26, 317, 175, 15);
 		LeftPanel.add(lblMinimum);
 		
 		final JLabel lblMaximum = new JLabel("Maximum");
-		lblMaximum.setBounds(26, 383, 175, 15);
+		lblMaximum.setBounds(26, 343, 175, 15);
 		LeftPanel.add(lblMaximum);
 		
 		textFieldMinIdealTurns = new JTextField();
 		textFieldMinIdealTurns.setText("0");
 		textFieldMinIdealTurns.setColumns(10);
-		textFieldMinIdealTurns.setBounds(220, 354, 162, 19);
+		textFieldMinIdealTurns.setBounds(220, 314, 162, 19);
 		LeftPanel.add(textFieldMinIdealTurns);
 		
 		textFieldMaxIdealTurns = new JTextField();
 		textFieldMaxIdealTurns.setText("1000");
 		textFieldMaxIdealTurns.setColumns(10);
-		textFieldMaxIdealTurns.setBounds(220, 380, 162, 19);
+		textFieldMaxIdealTurns.setBounds(220, 340, 162, 19);
 		LeftPanel.add(textFieldMaxIdealTurns);
 		
 		
 		
 		final JLabel lblSkillTrace = new JLabel("Skill Trace");
-		lblSkillTrace.setBounds(26, 435, 175, 15);
+		lblSkillTrace.setBounds(26, 385, 175, 15);
 		LeftPanel.add(lblSkillTrace);
 		
 		final JLabel lblDirectory = new JLabel("Output Folder");
-		lblDirectory.setBounds(26, 461, 175, 15);
+		lblDirectory.setBounds(26, 411, 175, 15);
 		LeftPanel.add(lblDirectory);
 		
 		final JLabel lblNumMatches = new JLabel("Maximum Levels");
-		lblNumMatches.setBounds(26, 487, 175, 15);
+		lblNumMatches.setBounds(26, 437, 175, 15);
 		LeftPanel.add(lblNumMatches);
 		
 		final JLabel lblTrailsPerMatch = new JLabel("Trials Per Level");
-		lblTrailsPerMatch.setBounds(26, 513, 175, 15);
+		lblTrailsPerMatch.setBounds(26, 463, 175, 15);
 		LeftPanel.add(lblTrailsPerMatch);
 		
-		final JLabel lblHardTimeLimit = new JLabel("Maximium Time(s)");
-		lblHardTimeLimit.setBounds(26, 539, 175, 15);
+		final JLabel lblHardTimeLimit = new JLabel("Maximum Time(s)");
+		lblHardTimeLimit.setBounds(26, 489, 175, 15);
 		LeftPanel.add(lblHardTimeLimit);
 		
 		final JButton skillTraceButton = new JButton("Run Skill Trace Only");  
-		skillTraceButton.setBounds(180, 565, 202, 23);  
+		skillTraceButton.setBounds(180, 515, 202, 23);
 	    LeftPanel.add(skillTraceButton);  
 		
 		textFieldNumMatches = new JTextField();
 		textFieldNumMatches.setText("8");
 		textFieldNumMatches.setColumns(10);
-		textFieldNumMatches.setBounds(220, 484, 162, 19);
+		textFieldNumMatches.setBounds(220, 434, 162, 19);
 		LeftPanel.add(textFieldNumMatches);
 		
 		textFieldNumTrialsPerMatch = new JTextField();
 		textFieldNumTrialsPerMatch.setText("100");
 		textFieldNumTrialsPerMatch.setColumns(10);
-		textFieldNumTrialsPerMatch.setBounds(220, 510, 162, 19);
+		textFieldNumTrialsPerMatch.setBounds(220, 460, 162, 19);
 		LeftPanel.add(textFieldNumTrialsPerMatch);
 		
 		textFieldHardTimeLimit = new JTextField();
 		textFieldHardTimeLimit.setText("60");
 		textFieldHardTimeLimit.setColumns(10);
-		textFieldHardTimeLimit.setBounds(220, 536, 162, 19);
+		textFieldHardTimeLimit.setBounds(220, 486, 162, 19);
 		LeftPanel.add(textFieldHardTimeLimit);
 		
 		String tempFilePath = DesktopApp.lastSelectedJsonPath();
@@ -240,13 +242,35 @@ public class EvaluationDialog extends JDialog
 		
 		txtcommonresoutput = new JTextField();
 		txtcommonresoutput.setText(defaultFilePath);
-		txtcommonresoutput.setBounds(140, 460, 180, 19);
+		txtcommonresoutput.setBounds(140, 410, 180, 19);
 		LeftPanel.add(txtcommonresoutput);
 		txtcommonresoutput.setColumns(10);
+
+		final JLabel lblNNRecommendedScore = new JLabel("Nearest Neighbor Score Recommendation");
+		lblNNRecommendedScore.setBounds(26, 551, 240, 15);
+		LeftPanel.add(lblNNRecommendedScore);
+
+		final JLabel lblKValue = new JLabel("k Value");
+		lblKValue.setBounds(26, 577, 175, 15);
+		LeftPanel.add(lblKValue);
+
+		numberOfNeighbors = new JTextField();
+		numberOfNeighbors.setText("3");
+		numberOfNeighbors.setColumns(10);
+		numberOfNeighbors.setBounds(220, 577, 162, 19);
+		LeftPanel.add(numberOfNeighbors);
+
+		final JButton buttonRunKNN = new JButton("Run kNN");
+		buttonRunKNN.setBounds(180, 606, 202, 23);
+		LeftPanel.add(buttonRunKNN);
+
+		final JCheckBox compareMetricsCheckBox = new JCheckBox("Compare Metrics");
+		compareMetricsCheckBox.setBounds(26, 606, 150, 23);
+		LeftPanel.add(compareMetricsCheckBox);
 		
 		final JButton buttonSelectDir = new JButton("Select");
 		buttonSelectDir.setFont(new Font("Arial", Font.PLAIN, 7));
-		buttonSelectDir.setBounds(324, 460, 55, 18);
+		buttonSelectDir.setBounds(324, 410, 55, 18);
 		final ActionListener buttonListener = new ActionListener()
 		{
 			@Override
@@ -278,7 +302,7 @@ public class EvaluationDialog extends JDialog
 		
 		
 		final JButton btnCalculateTurnRange = new JButton("Calculate");
-		btnCalculateTurnRange.setBounds(220, 323, 162, 23);
+		btnCalculateTurnRange.setBounds(220, 283, 162, 23);
 		LeftPanel.add(btnCalculateTurnRange);
 		
 		final JCheckBox useDatabaseTrialsCheckBox = new JCheckBox("Use Database Trials (when available)");
@@ -494,6 +518,19 @@ public class EvaluationDialog extends JDialog
 				// Reset weights back afterwards
 				for (int i = 0; i < allMetricSliders.size(); i++)
 					weights.set(i, Double.valueOf(allMetricTextFields.get(i).getText()));
+			}
+		});
+
+		buttonRunKNN.addActionListener(new ActionListener()
+		{
+			@Override
+			public void actionPerformed(final ActionEvent e)
+			{
+				final Report report = new Report();
+				report.setReportMessageFunctions(new ReportMessengerGUI(app));
+
+				AIPlayer.RecommendedEvaluation(app, Integer.parseInt(numberOfNeighbors.getText()), false, compareMetricsCheckBox.isSelected(), report);
+				DesktopApp.view().tabPanel().select(TabView.PanelAnalysis);
 			}
 		});
 		

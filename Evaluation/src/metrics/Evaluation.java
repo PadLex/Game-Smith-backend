@@ -99,7 +99,7 @@ public class Evaluation
 	}
 	
 	//-------------------------------------------------------------------------
-	
+
 	private final List<Metric> reconstructionMetrics = new ArrayList<>();
 	{
 		reconstructionMetrics.add(new DurationTurns());
