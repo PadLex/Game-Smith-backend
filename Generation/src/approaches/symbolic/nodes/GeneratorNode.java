@@ -1,7 +1,9 @@
 package approaches.symbolic.nodes;
 
 import approaches.symbolic.SymbolMapper;
-import main.grammar.Symbol;
+import approaches.symbolic.SymbolMapper.MappedSymbol;
+import main.StringRoutines;
+
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -9,19 +11,20 @@ import java.util.List;
 import java.util.Objects;
 
 public abstract class GeneratorNode {
-    final Symbol symbol;
+    final MappedSymbol symbol;
     final List<GeneratorNode> parameterSet = new ArrayList<>();
     GeneratorNode parent;
     Object compilerCache = null;
+    String descriptionCache = null;
     boolean complete;
 
-    GeneratorNode(Symbol symbol, GeneratorNode parent) {
+    GeneratorNode(MappedSymbol symbol, GeneratorNode parent) {
         assert symbol != null;
         this.symbol = symbol;
         this.parent = parent;
     }
 
-    public static GeneratorNode fromSymbol(Symbol symbol, GeneratorNode parent) {
+    public static GeneratorNode fromSymbol(MappedSymbol symbol, GeneratorNode parent) {
         if (symbol.nesting() > 0) {
             return new ArrayNode(symbol, parent);
         }
@@ -58,16 +61,47 @@ public abstract class GeneratorNode {
 
     public abstract List<GeneratorNode> nextPossibleParameters(SymbolMapper symbolMapper);
 
-    public List<GeneratorNode> nextPossibleParameters(SymbolMapper symbolMapper, List<GeneratorNode> partialArguments) {
-        int i = parameterSet.size();
-        parameterSet.addAll(partialArguments);
-        List<GeneratorNode> next = nextPossibleParameters(symbolMapper);
-        parameterSet.subList(i, parameterSet.size()).clear();
-        return next;
-    };
+    public List<GeneratorNode> nextPossibleParameters(SymbolMapper symbolMapper, List<GeneratorNode> partialArguments, boolean includeAliases, boolean expandEmpty) {
+        List<GeneratorNode> options;
+
+        if (partialArguments == null || partialArguments.isEmpty()) {
+            options = nextPossibleParameters(symbolMapper);
+        } else {
+            int i = parameterSet.size();
+            parameterSet.addAll(partialArguments);
+            options = nextPossibleParameters(symbolMapper);
+            parameterSet.subList(i, parameterSet.size()).clear();
+        }
+
+        if (includeAliases || expandEmpty)
+            options = new ArrayList<>(options);
+
+        // Expand empty nodes
+        if (expandEmpty) {
+            EmptyNode empty = options.stream().filter(n -> n instanceof EmptyNode).map(n -> (EmptyNode) n).findFirst().orElse(null);
+            if (empty != null) {
+                options.remove(empty);
+                List<GeneratorNode> nextPartialArguments = partialArguments==null? new ArrayList<>() : new ArrayList<>(partialArguments);
+                nextPartialArguments.add(empty);
+                options.addAll(nextPossibleParameters(symbolMapper, nextPartialArguments, includeAliases, expandEmpty));
+            }
+        }
+
+        // Add aliases to the options (^ ... should also include (pow ...
+        if (includeAliases) {
+            options.addAll(options.stream().filter(n -> n.symbol().hasAlias()).map(n -> {
+                MappedSymbol noAlias = new MappedSymbol(n.symbol());
+                noAlias.setToken(StringRoutines.toDromedaryCase(noAlias.name()));
+                return GeneratorNode.fromSymbol(noAlias, n.parent());
+            }).toList());
+        }
+
+        return options;
+    }
 
     public void addParameter(GeneratorNode param) {
         assert param != null;
+        param.parent = this;
 
         if (param instanceof EndOfClauseNode) {
             complete = true;
@@ -79,21 +113,22 @@ public abstract class GeneratorNode {
 
     public void popParameter() {
         parameterSet.remove(parameterSet.size() - 1);
-        clearCompilerCache();
+        clearCache();
         complete = false;
     }
 
     public void clearParameters() {
         parameterSet.clear();
-        clearCompilerCache();
+        clearCache();
         complete = false;
     }
 
-    public void clearCompilerCache() {
+    public void clearCache() {
         if (parent.compilerCache != null)
-            parent.clearCompilerCache();
+            parent.clearCache();
 
         compilerCache = null;
+        descriptionCache = null;
     }
 
     public boolean isComplete() {
@@ -106,14 +141,14 @@ public abstract class GeneratorNode {
 
     public void assertRecursivelyComplete() {
         if(!isComplete()) {
-            System.out.println("Params " + this.parameterSet.stream().map(GeneratorNode::symbol).map(Symbol::grammarLabel).toList());
+            System.out.println("Params " + this.parameterSet.stream().map(GeneratorNode::symbol).map(MappedSymbol::grammarLabel).toList());
             throw new RuntimeException("Node is not complete: " + this);
         }
 
         parameterSet.forEach(GeneratorNode::assertRecursivelyComplete);
     }
 
-    public Symbol symbol() {
+    public MappedSymbol symbol() {
         return symbol;
     }
 
@@ -159,8 +194,18 @@ public abstract class GeneratorNode {
         return clone;
     }
 
-    public String buildDescription() {
-        return toString();
+    public String description() {
+        if (descriptionCache == null)
+            descriptionCache = buildDescription();
+
+        return descriptionCache;
+    }
+
+    String buildDescription() {
+        if (symbol.label != null)
+            return symbol.label + ":" + this.toString();
+
+        return this.toString();
     }
 
     public GameNode root() {

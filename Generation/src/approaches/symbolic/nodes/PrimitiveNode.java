@@ -1,16 +1,23 @@
 package approaches.symbolic.nodes;
 
 import approaches.symbolic.SymbolMapper;
-import main.grammar.Symbol;
+import approaches.symbolic.SymbolMapper.MappedSymbol;
+import game.functions.booleans.BooleanConstant;
+import game.functions.dim.DimConstant;
+import game.functions.floats.FloatConstant;
+import game.functions.floats.FloatFunction;
+import game.functions.ints.IntConstant;
+import game.functions.ints.IntFunction;
 
 import java.util.List;
+import java.util.Objects;
 
 public class PrimitiveNode extends GeneratorNode {
 
     public enum PrimitiveType {INT, FLOAT, DIM, STRING, BOOLEAN}
     private Object value;
 
-    PrimitiveNode(Symbol symbol, GeneratorNode parent) {
+    PrimitiveNode(MappedSymbol symbol, GeneratorNode parent) {
         super(symbol, parent);
     }
 
@@ -19,12 +26,33 @@ public class PrimitiveNode extends GeneratorNode {
     }
 
     public void setUnparsedValue(String strValue) {
-        switch (getType()) {
-            case INT, DIM -> value = Integer.parseInt(strValue);
-            case FLOAT -> value = Float.parseFloat(strValue);
-            case STRING -> value = strValue;
-            case BOOLEAN -> value = Boolean.parseBoolean(strValue);
-        }
+        value = switch (getType()) {
+            case INT, DIM -> parseInt(strValue);
+            case FLOAT -> Float.parseFloat(strValue);
+            case STRING -> strValue;
+            case BOOLEAN -> Boolean.parseBoolean(strValue);
+        };
+
+        if (IntConstant.class.isAssignableFrom(symbol.cls()))
+            value = new IntConstant((Integer) value);
+
+        if (DimConstant.class.isAssignableFrom(symbol.cls()))
+            value = new DimConstant((Integer) value);
+
+        if (FloatConstant.class.isAssignableFrom(symbol.cls()))
+            value = new FloatConstant((Float) value);
+
+        if (BooleanConstant.class.isAssignableFrom(symbol.cls()))
+            value = new BooleanConstant((Boolean) value);
+
+    }
+
+    static int parseInt(String strValue) {
+        return switch (strValue) {
+            case "Infinity" -> 1000000000;
+            case "-Infinity" -> -1000000000;
+            default -> Integer.parseInt(strValue);
+        };
     }
 
     Object instantiate() {
@@ -53,7 +81,21 @@ public class PrimitiveNode extends GeneratorNode {
         if (value instanceof String)
             return "\"" + value + "\"";
 
-        return value.toString();
+        String strValue = value.toString();
+        if (Objects.equals(strValue, "1000000000"))
+            return "Infinity";
+        if (Objects.equals(strValue, "-1000000000"))
+            return "-Infinity";
+
+        if (Objects.equals(strValue, "true"))
+            return "True";
+        if (Objects.equals(strValue, "false"))
+            return "False";
+
+        if (strValue.endsWith(".0"))
+            return strValue.substring(0, strValue.length() - 2); // TODO remove this
+
+        return strValue;
     }
 
     @Override
@@ -69,7 +111,7 @@ public class PrimitiveNode extends GeneratorNode {
 
     public static PrimitiveType typeOf(String path) {
         switch (path) {
-            case "java.lang.Integer", "game.functions.ints.IntConstant" -> {
+            case "int", "java.lang.Integer", "game.functions.ints.IntConstant" -> {
                 return PrimitiveType.INT;
             }
 
@@ -77,11 +119,11 @@ public class PrimitiveNode extends GeneratorNode {
                 return PrimitiveType.DIM;
             }
 
-            case "java.lang.Float", "game.functions.floats.FloatConstant" -> {
+            case "float", "java.lang.Float", "game.functions.floats.FloatConstant" -> {
                 return PrimitiveType.FLOAT;
             }
 
-            case "java.lang.Boolean", "game.functions.booleans.BooleanConstant" -> {
+            case "boolean", "java.lang.Boolean", "game.functions.booleans.BooleanConstant" -> {
                 return PrimitiveType.BOOLEAN;
             }
 

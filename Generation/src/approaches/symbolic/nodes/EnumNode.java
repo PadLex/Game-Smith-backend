@@ -1,13 +1,13 @@
 package approaches.symbolic.nodes;
 
 import approaches.symbolic.SymbolMapper;
-import main.grammar.Symbol;
+import approaches.symbolic.SymbolMapper.MappedSymbol;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
 public class EnumNode extends GeneratorNode {
-    EnumNode(Symbol symbol, GeneratorNode parent) {
+    EnumNode(MappedSymbol symbol, GeneratorNode parent) {
         super(symbol, parent);
     }
 
@@ -37,4 +37,12 @@ public class EnumNode extends GeneratorNode {
     public String toString() {
         return symbol.grammarLabel();
     }
+
+//    @Override
+//    public String buildDescription() {
+//        if (symbol.label != null)
+//            return symbol.label + ":" + symbol.grammarLabel();
+//
+//        return symbol.grammarLabel();
+//    }
 }
