@@ -15,7 +15,6 @@ public class PartialCompile {
         SymbolMapper symbolMapper = new CachedMapper();
 
         while (sc.hasNextLine()) {
-            //System.out.println(partialCompilation.consistentGames.peek().description());
             String input = sc.nextLine();
             input = input.replace("\\n", "\n");
             PartialCompilation partialCompilation = compilePartialDescription(standardize(input), symbolMapper);

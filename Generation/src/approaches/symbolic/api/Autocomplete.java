@@ -38,12 +38,8 @@ public class Autocomplete {
         GeneratorNode node = partialCompilation.consistentGames.peek().consistentGame;
         List<Completion> completions = new ArrayList<>();
 
-//        System.out.println(node.root().description());
-
         if (standardInput.chars().filter(c -> c == ' ').count() != node.root().description().chars().filter(c -> c == ' ').count())
             return completions;
-
-//        System.out.println("Autocompleting: " + node.root().description());
 
         for (GeneratorNode option: node.nextPossibleParameters(symbolMapper, null, false, true)) {
             assert !(option instanceof EmptyNode);
@@ -74,23 +70,11 @@ public class Autocomplete {
         SymbolMapper symbolMapper = new CachedMapper();
 
         while (sc.hasNextLine()) {
-            //System.out.println(partialCompilation.consistentGames.peek().description());
             for (Completion completion : autocomplete(sc.nextLine(), symbolMapper)) {
                 System.out.print(completion.completion + "|" + completion.description + "||");
             }
             System.out.println();
         }
         sc.close();
-
-
-//        String full    = "(game \"Hex\" (players 2) (equipment {(board (hex Diamond 11)) (piece \"Marker\" Each) (regions P1 {(sites Side NE) (sites Side SW)}) (regions P2 {(sites Side NW) (sites Side SE)})}) (rules (meta (swap)) (play (move Add (to (sites Empty)))) (end (if (is Connected Mover) (result Mover Win)))))";
-//        String partial = "(game \"Hex\" (players 2) (equipment {(board (hex Diamond 11)) (piece \"Marker\" Each";
-//        SymbolMapper symbolMapper = new SymbolMapper();
-//        compilePartialDescription(standardize(partial), symbolMapper).consistentGames.forEach(n -> System.out.println(n.root().description()));
-//
-//        for (Completion completion : autocomplete(partial, symbolMapper)) {
-//            System.out.print(completion.completion + "|" + completion.description + "||");
-//        }
-//        System.out.println();
     }
 }
