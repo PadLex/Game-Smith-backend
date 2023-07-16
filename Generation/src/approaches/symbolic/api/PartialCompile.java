@@ -2,6 +2,8 @@ package approaches.symbolic.api;
 
 import approaches.symbolic.CachedMapper;
 import approaches.symbolic.SymbolMapper;
+import approaches.symbolic.nodes.GameNode;
+import supplementary.experiments.eval.EvalGames;
 
 import java.util.Scanner;
 
@@ -18,9 +20,11 @@ public class PartialCompile {
             String input = sc.nextLine();
             input = input.replace("\\n", "\n");
             PartialCompilation partialCompilation = compilePartialDescription(standardize(input), symbolMapper);
-            String compilingPortion = partialCompilation.consistentGames.peek().consistentGame.root().description();
-            System.out.println(partialCompilation.exception == null? 1:0);
-            System.out.println(compilingPortion.length() / 100.0);
+            GameNode gameNode = partialCompilation.consistentGames.peek().consistentGame.root();
+            String compilingPortion = gameNode.description();
+            boolean compiles = partialCompilation.exception == null;
+            System.out.println(compiles? 1:0);
+            System.out.println(compiles? EvalGames.defaultEvaluationFast(gameNode.compile()):0);
             System.out.println(destandardize(input, compilingPortion).replace("\n", "\\n"));
         }
         sc.close();

@@ -5,6 +5,7 @@ import game.Game;
 import main.grammar.Description;
 import main.grammar.Report;
 import main.options.UserSelections;
+import supplementary.experiments.eval.EvalGames;
 
 import java.util.ArrayList;
 import java.util.Scanner;
@@ -24,7 +25,7 @@ public class LegacyCompile {
             } catch (Exception ignored) {}
 
             System.out.println(game != null? 1:0);
-            System.out.println(input.length() / 100.0);
+            System.out.println(game != null? EvalGames.defaultEvaluationFast(game):0);
             Thread.sleep(10); // Pause to prevent the buffer from filling up.
         }
         sc.close();

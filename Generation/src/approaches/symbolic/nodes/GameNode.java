@@ -9,6 +9,7 @@ import game.mode.Mode;
 import game.players.Players;
 import game.rules.Rules;
 import grammar.Grammar;
+import main.grammar.Description;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,6 +40,8 @@ public class GameNode extends GeneratorNode {
         //System.out.println("Skipping equipment: " + skipEquipment);
 
         Game game = instantiate();
+
+        game.setDescription(new Description(description()));
 
         //TODO skipEquipment
 //        if (skipEquipment) game.createGame();
