@@ -91,7 +91,7 @@ public class EvalGames
 		{
 			if (!FileHandling.shouldIgnoreLudEvaluation(s))
 			{
-				System.out.println("\n" + s);
+//				System.out.println("\n" + s);
 				final String gameName = s.split("\\/")[s.split("\\/").length-1];
 				final Game tempGame = GameLoader.loadGameFromName(gameName);
 				final List<Ruleset> rulesets = tempGame.description().rulesets();
@@ -542,8 +542,8 @@ public class EvalGames
 			ArrayList<Integer> ratingCounts = new ArrayList<>();
 			while((line = br.readLine()) != null)
 			{
-				System.out.println("examining line " + (lineCount + 1) + ", which is as follows: ");
-				System.out.println(line);
+//				System.out.println("examining line " + (lineCount + 1) + ", which is as follows: ");
+//				System.out.println(line);
 				String[] splitLine = line.split(",");
 				String[] splitLineCorrect = new String[splitLine.length - 1];
 				for(int i = 0; i < splitLine.length - 1; i++)
@@ -571,15 +571,15 @@ public class EvalGames
 				}
 				lineCount++;
 			}
-			System.out.println(outputString);
+//			System.out.println(outputString);
 			for(int i = 0; i < ratings.size(); i++)
 			{
-				System.out.println("running, iteration " + i);
+//				System.out.println("running, iteration " + i);
 				ratings.set(i, ratings.get(i) / ratingCounts.get(i));
 				if(i == ratings.size() - 1) outputString.append(ratings.get(i));
 				else outputString.append(ratings.get(i)).append(",");
 			}
-			System.out.println("averaging and output string complete");
+//			System.out.println("averaging and output string complete");
 			BufferedWriter bw = new BufferedWriter(new FileWriter("Common\\res\\recs\\RatingGameMatrix.csv"));
 			bw.write(outputString.toString());
 			bw.close();
@@ -666,15 +666,15 @@ public class EvalGames
 		}
 		
 		final String message = "Please don't touch anything until complete! \nGenerating trials: \n";
-		try
-		{
-			report.getReportMessageFunctions().printMessageInAnalysisPanel(message);
-		}
-		catch(final Exception e)
-		{
-			// probably running from command line.
-			System.out.println(message);
-		}
+//		try
+//		{
+//			report.getReportMessageFunctions().printMessageInAnalysisPanel(message);
+//		}
+//		catch(final Exception e)
+//		{
+//			// probably running from command line.
+//			System.out.println(message);
+//		}
 
 		// If using Ludii AI, need to get the algorithm used.
 		for (int p = 1; p <= game.players().count(); ++p)
@@ -805,15 +805,15 @@ public class EvalGames
 				
 				sumNumMoves += context.trial().numMoves() - context.trial().numInitialPlacementMoves();
 				
-				try
-				{
-					report.getReportMessageFunctions().printMessageInAnalysisPanel(".");
-				}
-				catch(final Exception e)
-				{
-					// probably running from command line.
-					System.out.print(".");
-				}
+//				try
+//				{
+//					report.getReportMessageFunctions().printMessageInAnalysisPanel(".");
+//				}
+//				catch(final Exception e)
+//				{
+//					// probably running from command line.
+//					System.out.print(".");
+//				}
 				
 				allStoredTrials.add(new Trial(context.trial()));
 				
@@ -836,15 +836,15 @@ public class EvalGames
 			e.printStackTrace();
 		}
 		
-		try
-		{
-			report.getReportMessageFunctions().printMessageInAnalysisPanel("\nCalculating metrics: \n");
-		}
-		catch(final Exception e)
-		{
-			// probably running from command line.
-			System.out.print("\nTrials completed.\n");
-		}
+//		try
+//		{
+//			report.getReportMessageFunctions().printMessageInAnalysisPanel("\nCalculating metrics: \n");
+//		}
+//		catch(final Exception e)
+//		{
+//			// probably running from command line.
+//			System.out.print("\nTrials completed.\n");
+//		}
 		
 		final DecimalFormat df = new DecimalFormat("#.#####");
 		final String drawPercentage = df.format(numDraws*100.0/numGames) + "%";
@@ -875,15 +875,15 @@ public class EvalGames
 			
 			final Metric metric = metricsToEvaluate.get(m);
 			
-			try
-			{
-				report.getReportMessageFunctions().printMessageInAnalysisPanel(metric.name() + "\n");
-			}
-			catch(final Exception e)
-			{
-				// probably running from command line.
-				System.out.print(metric.name() + "\n");
-			}
+//			try
+//			{
+//				report.getReportMessageFunctions().printMessageInAnalysisPanel(metric.name() + "\n");
+//			}
+//			catch(final Exception e)
+//			{
+//				// probably running from command line.
+//				System.out.print(metric.name() + "\n");
+//			}
 			
 			final Double score = metric.apply(game, evaluation, trials, randomProviderStates);			
 			if (score == null)
@@ -901,15 +901,15 @@ public class EvalGames
 		
 		analysisPanelString += "Final Score: " + df.format(finalScore) + "\n\n";
 				
-		try
-		{
-			report.getReportMessageFunctions().printMessageInAnalysisPanel(analysisPanelString);	
-		}
-		catch (final Exception e)
-		{
-			// Probably running from command line
-			System.out.println(analysisPanelString);
-		}
+//		try
+//		{
+//			report.getReportMessageFunctions().printMessageInAnalysisPanel(analysisPanelString);
+//		}
+//		catch (final Exception e)
+//		{
+//			// Probably running from command line
+//			System.out.println(analysisPanelString);
+//		}
 
 		return csvOutputString.substring(0, csvOutputString.length()-1) + "\n";
 	}

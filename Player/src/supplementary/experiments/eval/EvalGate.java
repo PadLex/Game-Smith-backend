@@ -418,13 +418,13 @@ public class EvalGate
 				final double avgEvalScore = resultsSummary.avgScoreForAgentName("EvalAI");
 				final double avgGateScore = resultsSummary.avgScoreForAgentName("GateAI");
 				
-				System.out.println("----------------------------------");
-				System.out.println("Eval Agent = " + evalAgent);
-				System.out.println("Gate Agent = " + gateAgentType);
-				System.out.println();
-				System.out.println("Eval Agent Score = " + avgEvalScore);
-				System.out.println("Gate Agent Score = " + avgGateScore);
-				System.out.println("----------------------------------");
+//				System.out.println("----------------------------------");
+//				System.out.println("Eval Agent = " + evalAgent);
+//				System.out.println("Gate Agent = " + gateAgentType);
+//				System.out.println();
+//				System.out.println("Eval Agent Score = " + avgEvalScore);
+//				System.out.println("Gate Agent Score = " + avgGateScore);
+//				System.out.println("----------------------------------");
 				
 				if (avgEvalScore > avgGateScore)
 				{
