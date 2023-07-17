@@ -300,9 +300,9 @@ public class RecommenderStarter extends JFrame implements ActionListener {
                 options[2].setSelected(true);
                 break;
             case 12:
-                float [][] u_r_m = Csv_handler.parse_csv_to_matrix_2("resources/MF Results/first_use_lowest.csv");
-                float [][] u = Csv_handler.parse_csv_to_matrix_2("resources/MF Results/first_use_u_matrix_final.csv");
-                float [][] q = MatrixUtility.transpose(Csv_handler.parse_csv_to_matrix_2("resources/MF Results/first_use_q_matrix_final.csv"));
+                float [][] u_r_m = Csv_handler.parse_csv_to_matrix_2("Recommender/resources/MF Results/first_use_lowest.csv");
+                float [][] u = Csv_handler.parse_csv_to_matrix_2("Recommender/resources/MF Results/first_use_u_matrix_lowest.csv");
+                float [][] q = MatrixUtility.transpose(Csv_handler.parse_csv_to_matrix_2("Recommender/resources/MF Results/first_use_q_matrix_lowest.csv"));
                 MakeRecommendation mr = new MakeRecommendation(curUser.rating_vector, u_r_m, u, q);
                 mr.update_recs();
                 mr.user_n_most_liked_games(3);
