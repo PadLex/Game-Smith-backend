@@ -8,6 +8,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Node representing symbols with a nesting level > 0. Compiles to an array containing its compiled parameters.
+ */
 public class ArrayNode extends GeneratorNode {
     ArrayNode(MappedSymbol symbol, GeneratorNode parent) {
         super(symbol, parent);
@@ -18,24 +21,14 @@ public class ArrayNode extends GeneratorNode {
     Object instantiate() {
         List<Object> arguments = parameterSet.stream().filter(Objects::nonNull).map(GeneratorNode::compile).toList();
 
-        //System.out.println("Compiling: " + symbol.cls() + "-" + symbol.nesting() + " with " + arguments.stream().map(o -> o==null? null:o.getClass()).toList());
-
         Object array;
         if (symbol.nesting() == 1)
             array = Array.newInstance(symbol.cls(), arguments.size());
         else {
             array = Array.newInstance(arguments.get(0).getClass(), arguments.size());  // TODO Is this correct?
-
-//            if (int.class.isAssignableFrom(symbol.cls()) || Integer.class.isAssignableFrom(symbol.cls())) {
-//                arguments = arguments.stream().map(o -> {
-//                    if (o instanceof IntFunction intFunction)
-//                        return intFunction;
-//                }).toList();
-//            }
         }
 
         for (int i = 0; i < arguments.size(); i++) {
-            //System.out.println("Compiling: " + symbol + "-" + symbol.nesting() + " adding: " + arguments.get(i).getClass() + " vs " + array.getClass());
             Array.set(array, i, arguments.get(i));
         }
 
@@ -63,7 +56,6 @@ public class ArrayNode extends GeneratorNode {
             options.add(new ArrayNode(childSymbol, this));
         }
 
-        //if (!parameterSet.isEmpty())
         options.add(new EndOfClauseNode(this));
 
         return options;

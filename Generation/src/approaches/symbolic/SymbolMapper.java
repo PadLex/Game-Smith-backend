@@ -98,6 +98,10 @@ public class SymbolMapper {
         return possibilities.values().stream().sorted(Comparator.comparing(Symbol::path)).toList();
     }
 
+    /**
+     * @param symbol The symbol to get compatible symbols for.
+     * @return A list of symbols which can be used to initialize the given symbol.
+     */
     public List<Symbol> getCompatibleSymbols(Symbol symbol) {
         return Collections.unmodifiableList(compatibilityMap.get(symbol.path()));
     }
@@ -141,6 +145,11 @@ public class SymbolMapper {
         }
     }
 
+    /**
+     * Finds all the sets of symbols which can be used to initialize a given symbol.
+     * @param symbol The symbol to find parameter sets for.
+     * @return A list of parameter sets for the given symbol.
+     */
     private List<List<MappedSymbol>> findParameterSets(Symbol symbol) {
         List<List<MappedSymbol>> constructorSets = new ArrayList<>();
 
@@ -229,6 +238,12 @@ public class SymbolMapper {
         return parameterStream.toList();
     }
 
+    /**
+     * Permutes the optional flags and returns a list of all possible flag combinations.
+     * @param optionalFlags flags that are tentatively optional
+     * @param mandatoryFlags flags that override optional flags
+     * @return a list of all possible flag combinations
+     */
     private List<BitSet> permuteFlags(BitSet optionalFlags, BitSet mandatoryFlags) {
         List<BitSet> possibleSets = new ArrayList<>();
 
@@ -249,6 +264,11 @@ public class SymbolMapper {
         return possibleSets;
     }
 
+    /**
+     * Completes the andGroups by setting all flags in the same andGroup to true if any flag in the andGroup is true.
+     * @param clauseArgs the clause arguments
+     * @param possibleSets the list of possible flag combinations
+     */
     private void completeAndGroups(List<ClauseArg> clauseArgs, List<BitSet> possibleSets) {
         for (BitSet currentSet : possibleSets) {
             int currentAndGroup = 0;
@@ -294,6 +314,9 @@ public class SymbolMapper {
 
     }
 
+    /**
+     * Used in place of a null value when a parameter is unused
+     */
     static class EmptySymbol extends MappedSymbol {
         private EmptySymbol() {
             super(null, "mapper.unused", null, SymbolMapper.class, null);
@@ -310,6 +333,9 @@ public class SymbolMapper {
         }
     }
 
+    /**
+     * Used to mark the end of a clause. Used to uniquely identify a clause in without needing lables.
+     */
     static class EndOfClauseSymbol extends MappedSymbol {
         private EndOfClauseSymbol() {
             super(null, "mapper.endOfClause", null, SymbolMapper.class, null);
@@ -326,6 +352,10 @@ public class SymbolMapper {
         }
     }
 
+    /**
+     * A symbol that has been mapped to a label. Used by the DescriptionParser. Thanks to the EndOfClause symbol,
+     * the label is not required to identify the constructor.
+     */
     public static class MappedSymbol extends Symbol {
         public final String label;
 

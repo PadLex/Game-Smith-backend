@@ -6,6 +6,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Wraps a SymbolMapper and caches the results of the nextPossibilities method.
+ */
 public class CachedMapper extends SymbolMapper {
     public Map<String, List<MappedSymbol>> cachedQueries = new HashMap<>();
 
@@ -30,19 +33,4 @@ public class CachedMapper extends SymbolMapper {
         }
         return sb.append(')').toString();
     }
-
-    /**
-     * Saves the cache to a file.
-     */
-//    public void dump(Path path) {
-//        try {
-//            Files.write(path,
-//                    cachedQueries.entrySet().stream()
-//                            .map(entry -> entry.getKey() + "," + entry.getValue())
-//                            .collect(Collectors.toList()));
-//            System.out.println("Map successfully saved to file: " + fileName);
-//        } catch (IOException e) {
-//            System.err.println("Error occurred while saving map to file: " + e.getMessage());
-//        }
-//    }
 }

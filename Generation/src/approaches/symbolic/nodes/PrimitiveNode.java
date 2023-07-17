@@ -12,6 +12,9 @@ import game.functions.ints.IntFunction;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Represents string, int, float and boolean values. It's always a leaf node and compiles to a constant.
+ */
 public class PrimitiveNode extends GeneratorNode {
 
     public enum PrimitiveType {INT, FLOAT, DIM, STRING, BOOLEAN}

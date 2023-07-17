@@ -14,6 +14,9 @@ import main.grammar.Description;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Node representing a game Ludeme. Since this is the root of the tree, it has no parent.
+ */
 public class GameNode extends GeneratorNode {
     static final MappedSymbol gameSymbol = new MappedSymbol(Grammar.grammar().findSymbolByPath("game.Game"), null);
     static MappedSymbol nameSymbol = new MappedSymbol(Grammar.grammar().findSymbolByPath("java.lang.String"), null);
@@ -34,21 +37,10 @@ public class GameNode extends GeneratorNode {
     @Override
     public Game compile() {
         if (compilerCache != null) return (Game) compilerCache;
-
-        boolean skipEquipment = parameterSet.get(3).compilerCache != null;
-
-        //System.out.println("Skipping equipment: " + skipEquipment);
-
         Game game = instantiate();
 
         game.setDescription(new Description(description()));
-
-        //TODO skipEquipment
-//        if (skipEquipment) game.createGame();
-//        else game.create();
-        game.create();
-
-        //System.out.println("totalDefaultSites: " + game.equipment().totalDefaultSites());
+        game.create(); // TODO skip this step if recompiling rules only
 
         compilerCache = game;
         return (Game) compilerCache;
@@ -123,15 +115,6 @@ public class GameNode extends GeneratorNode {
         clone.compilerCache = compilerCache;
         return clone;
     }
-
-//    @Override
-//    public GameNode copyUp() {
-//        GameNode clone = new GameNode(symbol);
-//        clone.parameterSet.addAll(parameterSet);
-//        clone.complete = complete;
-//        clone.compilerCache = compilerCache;
-//        return clone;
-//    }
 
     public GeneratorNode nameNode() {
         return parameterSet.get(0);

@@ -1,22 +1,16 @@
 package approaches.symbolic;
-
-import approaches.symbolic.CachedMapper;
-import approaches.symbolic.SymbolMapper;
 import approaches.symbolic.nodes.*;
-
-import compiler.Compiler;
-import main.grammar.Description;
-import main.options.UserSelections;
-import main.grammar.Report;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/*
+    * Parses a description of a game into a tree of GeneratorNodes.
+    * TODO Definition support
+    * TODO Support too many consistent games
+    *
+    * @author Alexander Padula
+ */
 public class DescriptionParser {
     static final Pattern endOfParameter = Pattern.compile("[ )}]");
 
@@ -46,12 +40,14 @@ public class DescriptionParser {
         }
     }
 
+    /*
+     * Compiles a description of a game into a tree of GeneratorNodes.
+     * @param expanded The standardized description of the game
+     * @param symbolMapper The SymbolMapper to use
+     * @return The root of the tree of GeneratorNodes. Crashes if it encounters an exception
+     */
     public static GameNode compileDescription(String expanded, SymbolMapper symbolMapper) {
         PartialCompilation partialCompilation = compilePartialDescription(expanded, symbolMapper);
-
-//        TODO
-//        if (partialCompilation.consistentGames.size() > 1)
-//            System.out.println("WARNING multiple possibilities:");
 
         if (partialCompilation.exception != null)
             throw new RuntimeException(partialCompilation.exception);
@@ -59,6 +55,12 @@ public class DescriptionParser {
         return partialCompilation.consistentGames.peek().consistentGame.root();
     }
 
+    /*
+        * Compiles a description of a game into a tree of GeneratorNodes.
+        * @param expanded The standardized description of the game
+        * @param symbolMapper The SymbolMapper to use
+        * @return A PartialCompilation containing the consistent games and any exceptions that occurred
+     */
     public static PartialCompilation compilePartialDescription(String expanded, SymbolMapper symbolMapper) {
         Stack<CompilationState> consistentGames = new Stack<>();
         GeneratorNode gameNode = new GameNode();
@@ -67,7 +69,14 @@ public class DescriptionParser {
         return compilePartialDescription(expanded, consistentGames, symbolMapper);
     }
 
-    //TODO optimize by sorting options by frequency and performing dfs (remove option for loop)
+    /*
+     * Compiles a description of a game into a tree of GeneratorNodes, starting from a tree that has already been
+     * partially compiled.
+     * @param expanded The standardized description of the game
+     * @param consistentGames The stack of consistent games to start from
+     * @param symbolMapper The SymbolMapper to use
+     * @return A PartialCompilation containing the consistent games and any exceptions that occurred
+     */
     public static PartialCompilation compilePartialDescription(String expanded, Stack<CompilationState> consistentGames, SymbolMapper symbolMapper) {
         // If a complete game isn't found, the state of the stack is returned
         Stack<CompilationState> lastValidStack = consistentGames;
@@ -80,22 +89,13 @@ public class DescriptionParser {
             // Since we are performing a depth-first search, we can just pop the most recent partial game
             CompilationState state = currentStack.pop();
 
-//            System.out.println(state.consistentGame + " -> " + state.remainingOptions);
-
-//            if (state.remainingOptions.isEmpty()) {
-//                System.out.println(state.consistentGame.root().description());
-//                System.out.println(state.consistentGame.nextPossibleParameters(symbolMapper, null, true, false));
-//            }
-
             // If there are no more options, we have reached a dead end
             if (state.remainingOptions.size() > 1)
                 currentStack.add(new CompilationState(state.consistentGame, state.remainingOptions.subList(1, state.remainingOptions.size())));
 
             // Loops through all options and adds them to the stack if they are consistent with the expanded description
-
             try {
                 GeneratorNode newNode = appendOption(state.consistentGame, state.remainingOptions.get(0), expanded);
-//                    System.out.println("tried option:" + option + " -> " + (newNode != null) + "\n");
                 if (newNode != null) {
                     assert !newNode.isComplete() || newNode instanceof GameNode;
                     List<GeneratorNode> nextOptions = newNode.nextPossibleParameters(symbolMapper, null, true, false);
@@ -107,10 +107,10 @@ public class DescriptionParser {
                     return new PartialCompilation(currentStack, null);
 
             } catch (CompilationException e) {
-                System.out.println("Compilation exception: " + e.getMessage());
                 compilationException = e;
             }
 
+            // If the stack is empty, all paths lead to dead ends
             if (currentStack.isEmpty()) {
                 if (compilationException == null)
                     compilationException = new CompilationException("Syntax error");
@@ -118,14 +118,20 @@ public class DescriptionParser {
                 return new PartialCompilation(lastValidStack, compilationException);
             }
 
-            // TODO is it right
+            // If the current game is longer than the last valid game, update the last valid game.
             if (currentStack.peek().consistentGame.root().description().length() > lastValidStack.peek().consistentGame.root().description().length()) {
                 lastValidStack = (Stack<CompilationState>) currentStack.clone();
-//                System.out.println("New valid stack: " + lastValidStack.size());
             }
         }
     }
 
+    /*
+     * Appends an option to a game, if it is consistent with the expanded description.
+     * @param node The game to append to
+     * @param option The option to append
+     * @param expanded The standardized description
+     * @return The new game, or null if the option is not consistent with the expanded description
+     */
     static GeneratorNode appendOption(GeneratorNode node, GeneratorNode option, String expanded) throws CompilationException {
         String currentDescription = node.root().description();
 
@@ -133,9 +139,6 @@ public class DescriptionParser {
             return null;
 
         String trailingDescription = expanded.substring(currentDescription.length()).strip();
-
-//        System.out.println("Trying:" + option);
-//        System.out.println("Trailing:" + trailingDescription);
 
         // Parse primitive options
         if (option instanceof PrimitiveNode primitiveOption) {
@@ -186,11 +189,6 @@ public class DescriptionParser {
             option.setParent(newNode);
             newNode.addParameter(option);
 
-//            if (!expanded.startsWith(newNode.root().description())) {
-//                System.out.println(expanded);
-//                System.out.println(newNode.root().description());
-//            }
-
             assert expanded.startsWith(newNode.root().description());
             return newNode;
         }
@@ -199,7 +197,6 @@ public class DescriptionParser {
         else {
             // option.description accounts for the label already
             if (!(option instanceof EmptyNode) && !(option instanceof EndOfClauseNode)) {
-//                System.out.println("Starts:" + trailingDescription.startsWith(option.description()));
 
                 if (!trailingDescription.startsWith(option.description()))
                     return null;
@@ -208,7 +205,7 @@ public class DescriptionParser {
                     char nextChar = trailingDescription.charAt(option.description().length());
                     char currentChar = trailingDescription.charAt(option.description().length() - 1);
                     boolean isEnd = nextChar == ' ' || nextChar == ')' || nextChar == '}' || nextChar == '(' || nextChar == '{' || currentChar == '(' || currentChar == '{';
-//                    System.out.println(nextChar + ", " + currentChar + ", " + isEnd);
+
                     if (!isEnd)
                         return null;
                 }
@@ -235,12 +232,8 @@ public class DescriptionParser {
                 assert nodeCopy.isRecursivelyComplete();
 
                 try {
-//                    System.out.println("nodeCopy:" + nodeCopy);
-//                    System.out.println(nodeCopy.parameterSet().stream().map(o -> o==null? null:o.symbol().path()).toList());
-
                     nodeCopy.compile();
                 } catch (Exception e) {
-//                    throw e;
                     throw new CompilationException(e.getMessage());
                 }
 
@@ -251,110 +244,16 @@ public class DescriptionParser {
             }
 
             return nodeCopy;
-
-//            String newDescription = newNode.root().description();
-//            System.out.println("newDescription: " + newDescription);
-
         }
     }
 
-    static void testLudiiLibrary(SymbolMapper symbolMapper, int limit) throws IOException {
-        List<String> skip = List.of("Kriegspiel (Chess).lud", "Throngs.lud", "Tai Shogi.lud", "Taikyoku Shogi.lud", "Yonin Seireigi.lud", "Yonin Shogi.lud"); // "To Kinegi tou Lagou.lud"
-
-        String gamesRoot = "./Common/res/lud/board";
-        List<Path> paths = Files.walk(Paths.get(gamesRoot)).filter(Files::isRegularFile).filter(path -> path.toString().endsWith(".lud")).sorted().limit(limit).toList();
-        int count = 0;
-        int preCompilation = 0;
-        int compile = 0;
-        int recompile = 0;
-        int fromString = 0;
-        for (Path path : paths) {
-            String gameStr = Files.readString(path);
-
-            if (gameStr.contains("match")) {
-                System.out.println("Skipping match " + path.getFileName());
-                continue;
-            }
-
-            if (skip.contains(path.getFileName().toString())) {
-                System.out.println("Skipping " + path.getFileName());
-                continue;
-            }
-
-            System.out.println("\nLoading " + path.getFileName() + " (" + (count + 1) + " of " + paths.size() + " games)");
-
-            Description description = new Description(gameStr);
-
-            final UserSelections userSelections = new UserSelections(new ArrayList<>());
-            final Report report = new Report();
-
-            final long startPreCompilation = System.currentTimeMillis();
-            try {
-                Compiler.compile(description, userSelections, report, false);
-            } catch (Exception e) {
-                System.out.println("Could not pre-compile " + path.getFileName());
-                continue;
-            }
-            final long endPreCompilation = System.currentTimeMillis();
-            //System.out.println("Old compile: " + (endPreCompilation - startPreCompilation) + "ms");
-
-            //Playground.printCallTree(originalGame.description().callTree(), 0);
-
-            GameNode rootNode;
-            try {
-                rootNode = compileDescription(standardize(description.expanded()), symbolMapper);
-            } catch (Exception e) {
-                System.out.println("Could not compile description " + path.getFileName());
-                System.out.println(e.getMessage());
-                System.out.println("Skipping for now...");
-                //throw e;
-                continue;
-            }
-            final long endCompile = System.currentTimeMillis();
-            //System.out.println("My Compile: " + (endCompile - endClone) + "ms");
-
-            try {
-                rootNode.rulesNode().clearCache();
-                rootNode.compile();
-            } catch (Exception e) {
-                System.out.println("Could not recompile " + path.getFileName());
-                throw e;
-            }
-            final long endRecompile = System.currentTimeMillis();
-            //System.out.println("My Recompile: " + (endRecompile - endCompile) + "ms");
-
-            try {
-                Compiler.compile(new Description(rootNode.description()), new UserSelections(new ArrayList<>()), new Report(), false);
-            } catch (Exception e) {
-                System.out.println("Could not compile from description " + path.getFileName());
-                System.out.println(standardize(rootNode.description()));
-                System.out.println(standardize(description.expanded()));
-                throw e;
-                //continue;
-            }
-            final long endDescription = System.currentTimeMillis();
-
-            count += 1;
-            preCompilation += endPreCompilation - startPreCompilation;
-            compile += endCompile - endPreCompilation;
-            recompile += endRecompile - endCompile;
-            fromString += endDescription - endRecompile;
-
-            System.out.println("pre-compile:  " + (endPreCompilation - startPreCompilation) + "ms");
-            System.out.println("my-compile:   " + (endCompile - endPreCompilation) + "ms");
-            System.out.println("my-recompile: " + (endRecompile - endCompile) + "ms");
-            System.out.println("from-string:  " + (endDescription - endRecompile) + "ms");
-
-        }
-
-        System.out.println("Games:           " + count);
-        System.out.println("Pre-compilation: " + preCompilation + "ms");
-        System.out.println("Compile:         " + compile + "ms");
-        System.out.println("Recompile:       " + recompile + "ms");
-        System.out.println("From string:     " + fromString + "ms");
-
-    }
-
+    /*
+     * Standardizes a description such that any description that is equivalent to another description has the same
+     * standardized form. This is done by removing all unnecessary whitespace, replacing constants with their values,
+     * and standardizing numeric values.
+     * @param str The description to standardize
+     * @return The standardized description
+     */
     public static String standardize(String str) {
         str = str.strip();
         str = str.replaceAll("\\s+", " ");
@@ -375,6 +274,14 @@ public class DescriptionParser {
         return str;
     }
 
+    /*
+     * Undes the standardization of a description. Given the compilable portion of the description in standard form,
+     *  it recovers the compilable portion of the description in its original form.
+     * It does this py converting the standard form into a regular expression and then using that regular expression to
+     *  match the equivalent section in the original description.
+     * @param original The original description
+     * @param standard A standardized substring of the description
+     */
     public static String destandardize(String original, String standard) {
         String regex = standard;
         regex = regex.replace(" ", "\\s+");
@@ -387,44 +294,15 @@ public class DescriptionParser {
         regex = regex.replaceAll("[ ({]-1[ )}]", "[ ({](Off)|(-1)[ )}]");
         regex = regex.replaceAll("[ ({]-2[ )}]", "[ ({](End)|(-2)[ )}]");
         regex = regex.replaceAll("[ ({]-1[ )}]", "[ ({](Undefined)|(-1)[ )}]");
-//        System.out.println(regex);
 
         Pattern pattern = Pattern.compile(regex);
         Matcher matcher = pattern.matcher(original);
 
         if (matcher.lookingAt())
             return original.substring(0, matcher.end());
-//        System.out.println("Could not unstandardize");
+
         return "";
     }
 
-    public static void main(String[] args) throws IOException {
-        CachedMapper symbolMapper = new CachedMapper();
-        testLudiiLibrary(symbolMapper, 50);
-        System.out.println("cache:" + symbolMapper.cachedQueries.size());
 
-//        testLudiiLibrary(symbolMapper, 100);
-//        String gameName = "Pagade Kayi Ata (Sixteen-handed)"; // TODO Throngs (memory error), There and Back, Pyrga, There and Back, Kriegspiel (Chess), Tai Shogi
-//        Description description = new Description(Files.readString(Path.of("./Common/res/" + GameLoader.getFilePath(gameName))));
-//        Compiler.compile(description, new UserSelections(new ArrayList<>()), new Report(), false);
-//        System.out.println(description.expanded());
-//        System.out.println(standardize(description.expanded()));
-////        printCallTree(description.callTree(), 0);
-//        GameNode gameNode = compileDescription(standardize(description.expanded()), new SymbolMapper());
-//        System.out.println(gameNode.isRecursivelyComplete());
-
-//        System.out.println(standardize("0.0 hjbhjbjhj 9.70 9.09 (9.0) 8888.000  3.36000 3. (5.0} 9.2 or: 9 (game a  :     (g)"));
-
-//        String gameString = "(game \"Hex\" (players 2)\n\n\n (equipment         { (board (hex Diamond 10)) (piece \"Marker\" Each) (regions P1 {(    sites Side NE) (sites Side SW)\n}) (regions P2 {(sites Side NW) (sites Side SE)    }\n\n)\n}    ) (rules (meta (swap\n\n\n)) (play (move \n\nAdd (to (sites \n\nEmpty)))) (end\n\n (if (is Connected      Mover   ) (   result Mover Win))   )))";
-//        String standard = standardize(gameString).substring(0, 289);
-//        System.out.println(standard);
-//        System.out.println(destandardize(gameString, standard));
-
-//        String gameDescription = Files.readString(Path.of("./Common/res/" + GameLoader.getFilePath("Adugo"))).substring(0, 110); //
-//        System.out.println(gameDescription);
-//        Description description = new Description(gameDescription);
-//        Parser.expandAndParse(description, new UserSelections(List.of()), new Report(), true, true);
-//        System.out.println("Expanded: " + description.expanded());
-
-    }
 }

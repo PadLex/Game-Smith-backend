@@ -5,6 +5,9 @@ import main.grammar.Symbol;
 
 import java.util.List;
 
+/**
+ * Node representing an unused argument. This is a terminal node.
+ */
 public class EmptyNode extends GeneratorNode {
     public EmptyNode(GeneratorNode parent) {
         super(SymbolMapper.emptySymbol, parent);

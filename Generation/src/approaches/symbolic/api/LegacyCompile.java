@@ -10,6 +10,12 @@ import supplementary.experiments.eval.EvalGames;
 import java.util.ArrayList;
 import java.util.Scanner;
 
+/*
+ * Used by the extension to evaluate whether a game description compiles.
+ * It supports definitions but can't tell you which part of the description is causing the error.
+ *
+ * @author Alexander Padula
+ */
 public class LegacyCompile {
     public static void main(String[] args) throws InterruptedException {
         Scanner sc = new Scanner(System.in);

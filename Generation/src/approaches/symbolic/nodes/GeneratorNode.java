@@ -8,8 +8,11 @@ import main.StringRoutines;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 
+/**
+ * Represents a node in the generator tree. Each node tracks its symbol, parent, and parameters. Each node can tell you
+ * what parameters it can take next, and can compile itself by instantiating the symbol's ludeme class.
+ */
 public abstract class GeneratorNode {
     final MappedSymbol symbol;
     final List<GeneratorNode> parameterSet = new ArrayList<>();
@@ -24,6 +27,12 @@ public abstract class GeneratorNode {
         this.parent = parent;
     }
 
+    /**
+     * Identifies the correct type of node to create for a given symbol.
+     * @param symbol The symbol to create a node for.
+     * @param parent The parent of the node.
+     * @return A new node of the appropriate type for the symbol.
+     */
     public static GeneratorNode fromSymbol(MappedSymbol symbol, GeneratorNode parent) {
         if (symbol.nesting() > 0) {
             return new ArrayNode(symbol, parent);
@@ -50,6 +59,11 @@ public abstract class GeneratorNode {
         return new ClassNode(symbol, parent);
     }
 
+    /**
+     * Recursively compiles the ludeme represented by this node. This method is memoized, so it will only compile the
+     * ludeme once.
+     * @return The compiled ludeme.
+     */
     public Object compile() {
         if (compilerCache == null)
             compilerCache = instantiate();
@@ -139,15 +153,6 @@ public abstract class GeneratorNode {
         return isComplete() && parameterSet.stream().allMatch(GeneratorNode::isRecursivelyComplete);
     }
 
-    public void assertRecursivelyComplete() {
-        if(!isComplete()) {
-            System.out.println("Params " + this.parameterSet.stream().map(GeneratorNode::symbol).map(MappedSymbol::grammarLabel).toList());
-            throw new RuntimeException("Node is not complete: " + this);
-        }
-
-        parameterSet.forEach(GeneratorNode::assertRecursivelyComplete);
-    }
-
     public MappedSymbol symbol() {
         return symbol;
     }
@@ -173,6 +178,10 @@ public abstract class GeneratorNode {
         return null;
     }
 
+    /**
+     * Copies the node and all of its grandchildren down to the leaves.
+     * @return A copy of the node and all of its grandchildren.
+     */
     public GeneratorNode copyDown() {
         GeneratorNode clone = fromSymbol(symbol, parent);
         clone.parameterSet.addAll(parameterSet.stream().map(GeneratorNode::copyDown).toList());
@@ -181,6 +190,10 @@ public abstract class GeneratorNode {
         return clone;
     }
 
+    /**
+     * Copies the node and all of its ancestors up to the root node.
+     * @return A copy of the node and all of its ancestors.
+     */
     public GeneratorNode copyUp() {
         GeneratorNode clone = fromSymbol(symbol, parent);
         clone.parameterSet.addAll(parameterSet);
@@ -194,6 +207,10 @@ public abstract class GeneratorNode {
         return clone;
     }
 
+    /**
+     * Note: this function is memoized
+     * @return A representation of the game in compilable standard form as defined in DescriptionParser
+     */
     public String description() {
         if (descriptionCache == null)
             descriptionCache = buildDescription();
@@ -216,18 +233,6 @@ public abstract class GeneratorNode {
         return (GameNode) node;
     }
 
-    public List<Integer> indexPath() {
-        List<Integer> indexes = new ArrayList<>();
-        GeneratorNode node = this;
-        while (node.parent != null) {
-            System.out.println(node.parent.parameterSet + ": " + node + " " + node.parent.parameterSet.indexOf(node));
-            indexes.add(node.parent.parameterSet.indexOf(node));
-            node = node.parent;
-        }
-        Collections.reverse(indexes);
-        return indexes;
-    }
-
     public GeneratorNode get(List<Integer> indexes) {
         GeneratorNode node = this;
         for (int i : indexes) {
@@ -236,18 +241,4 @@ public abstract class GeneratorNode {
         return node;
     }
 
-    public boolean equivalent(GeneratorNode other) {
-        if (!Objects.equals(symbol.path(), other.symbol.path()) && symbol.nesting() != other.symbol.nesting())
-            return false;
-
-        if (parameterSet.size() != other.parameterSet.size())
-            return false;
-
-        for (int i = 0; i < parameterSet.size(); i++) {
-            if (!parameterSet.get(i).equivalent(other.parameterSet.get(i)))
-                return false;
-        }
-
-        return true;
-    }
 }

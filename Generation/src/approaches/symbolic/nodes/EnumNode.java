@@ -6,6 +6,9 @@ import approaches.symbolic.SymbolMapper.MappedSymbol;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
+/**
+ * Node representing an enum ludeme. This is a terminal node.
+ */
 public class EnumNode extends GeneratorNode {
     EnumNode(MappedSymbol symbol, GeneratorNode parent) {
         super(symbol, parent);
@@ -37,12 +40,4 @@ public class EnumNode extends GeneratorNode {
     public String toString() {
         return symbol.grammarLabel();
     }
-
-//    @Override
-//    public String buildDescription() {
-//        if (symbol.label != null)
-//            return symbol.label + ":" + symbol.grammarLabel();
-//
-//        return symbol.grammarLabel();
-//    }
 }

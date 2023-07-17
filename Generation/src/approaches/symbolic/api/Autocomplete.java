@@ -15,6 +15,7 @@ import java.util.Scanner;
 import static approaches.symbolic.DescriptionParser.compilePartialDescription;
 import static approaches.symbolic.DescriptionParser.standardize;
 
+
 public class Autocomplete {
 
     static class Completion {

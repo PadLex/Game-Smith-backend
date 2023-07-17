@@ -5,6 +5,9 @@ import main.grammar.Symbol;
 
 import java.util.List;
 
+/**
+ * Node representing the end of a clause. This is a terminal node.
+ */
 public class EndOfClauseNode extends GeneratorNode {
     public EndOfClauseNode(GeneratorNode parent) {
         super(SymbolMapper.endOfClauseSymbol, parent);

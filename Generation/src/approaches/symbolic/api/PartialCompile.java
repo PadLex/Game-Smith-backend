@@ -9,6 +9,12 @@ import java.util.Scanner;
 
 import static approaches.symbolic.DescriptionParser.*;
 
+/*
+    * Used by the extension to evaluate up to what point a game description compiles.
+    * It does not yet support definitions. But it can tell you where the error is.
+    *
+    * @author Alexander Padula
+ */
 public class PartialCompile {
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
