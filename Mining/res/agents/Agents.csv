@@ -1,7 +1,3 @@
-6,AlphaBeta
-3,UCT
-1,Random
-8,MAST
-5,MC-GRAVE
-7,ProgressiveHistory
-11,BRS+
+version https://git-lfs.github.com/spec/v1
+oid sha256:170b3a735c11767d153b0a7d47adde27bd038ed9834e2e946f298f7464cf50a7
+size 74
