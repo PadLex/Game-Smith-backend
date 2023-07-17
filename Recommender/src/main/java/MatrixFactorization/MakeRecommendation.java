@@ -83,9 +83,9 @@ public class MakeRecommendation {
             String s2 = " \" " + s + " \" ";
             for(String [] strarr : games_w_desc){
                 if(Objects.equals(strarr[0].replaceAll("\\s+",""), s.replaceAll("\\s+",""))){
-                    str.append(s).append(" : ").append(strarr[1]).append("\n");
+                    str.append(s).append(" : ").append(strarr[1]).append("\\n");
                 }else if(Objects.equals(strarr[0].replaceAll("\\s+",""), s2.replaceAll("\\s+",""))) {
-                    str.append(s).append(" : ").append(strarr[1]).append("\n");
+                    str.append(s).append(" : ").append(strarr[1]).append("\\n");
                 }
             }
         }
