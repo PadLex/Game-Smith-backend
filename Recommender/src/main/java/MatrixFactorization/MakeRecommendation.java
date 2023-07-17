@@ -73,7 +73,7 @@ public class MakeRecommendation {
         for (int i = 0; i < fav_games_index.length; i++) {
             fav_games[i] = all_games[fav_games_index[i]];
         }
-        System.out.println("We recommend " + Arrays.toString(fav_games));
+//        System.out.println("We recommend " + Arrays.toString(fav_games));
     }
     public String fav_game_desc(){
         StringBuilder str = new StringBuilder();

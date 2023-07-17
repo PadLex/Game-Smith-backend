@@ -308,7 +308,7 @@ public class RecommenderStarter extends JFrame implements ActionListener {
                 mr.user_n_most_liked_games(3);
                 String desc_format = mr.fav_game_desc();
 //                System.out.println("Desc format printed out for ALex, comment lines 313 and 314 if format is correct");
-//                System.out.println(desc_format);
+                System.out.println(desc_format);
                 dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
                 break;
 
