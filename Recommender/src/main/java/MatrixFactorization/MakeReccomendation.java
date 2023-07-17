@@ -94,12 +94,12 @@ public class MakeReccomendation {
         }
         return str.toString();
     }
-    public float [] user_most_liked_ludemes(){
-        return new Extract_Ludeme_Concept(fav_games, pathfile_ludeme_matrix).get_most_used();
-    }
-    public float [] user_most_liked_concepts(){
-        return new Extract_Ludeme_Concept(fav_games, pathfile_concept_matrix).get_most_used();
-    }
+//    public float [] user_most_liked_ludemes(){
+//        return new Extract_Ludeme_Concept(fav_games, pathfile_ludeme_matrix).get_most_used();
+//    }
+//    public float [] user_most_liked_concepts(){
+//        return new Extract_Ludeme_Concept(fav_games, pathfile_concept_matrix).get_most_used();
+//    }
 
     /**
      * Extract the item vectors for the items the user rated
