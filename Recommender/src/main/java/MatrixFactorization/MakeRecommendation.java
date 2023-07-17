@@ -40,11 +40,11 @@ public class MakeRecommendation {
         float [][] q_u_q_uTInv = MatrixUtility.inverse(q_u_q_uT);   // Should be k x k
         float [][] q_uT_q_u_q_uTInv = MatrixUtility.multiply_2_matrices(q_uT, q_u_q_uTInv);   // Should be n_u x k
         float [][] r_q_uT_q_u_q_uTInv = MatrixUtility.multiply_2_matrices(r, q_uT_q_u_q_uTInv); // Should be 1 x k
-        System.out.println(r_q_uT_q_u_q_uTInv[0].length);
-        System.out.println(k);
-        System.out.println(q_matrix.length);
-        System.out.println(q_matrix[0].length);
-        System.out.println(recs.length);
+//        System.out.println(r_q_uT_q_u_q_uTInv[0].length);
+//        System.out.println(k);
+//        System.out.println(q_matrix.length);
+//        System.out.println(q_matrix[0].length);
+//        System.out.println(recs.length);
         for (Integer i : inds_no_rating){
             recs[i] = 0;
             for(int j=0; j < r_q_uT_q_u_q_uTInv[0].length; j++){
