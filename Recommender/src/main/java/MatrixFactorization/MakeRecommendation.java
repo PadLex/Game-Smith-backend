@@ -77,16 +77,15 @@ public class MakeRecommendation {
     }
     public String fav_game_desc(){
         StringBuilder str = new StringBuilder();
-        String [] fav_games = new String [] {"Chess", "Doov", "Diviyan Keliya"};
         ArrayList<String[]> games_w_desc = Csv_handler.return_game_w_desc();
         for(String s : fav_games){
-            System.out.println(s);
+//            System.out.println(s);
             String s2 = " \" " + s + " \" ";
             for(String [] strarr : games_w_desc){
                 if(Objects.equals(strarr[0].replaceAll("\\s+",""), s.replaceAll("\\s+",""))){
-                    str.append(strarr[1]).append("\n");
+                    str.append(s).append(" : ").append(strarr[1]).append("\n");
                 }else if(Objects.equals(strarr[0].replaceAll("\\s+",""), s2.replaceAll("\\s+",""))) {
-                    str.append(strarr[1]).append("\n");
+                    str.append(s).append(" : ").append(strarr[1]).append("\n");
                 }
             }
         }
