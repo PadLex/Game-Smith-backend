@@ -49,6 +49,6 @@ public class WelcomeDialogue extends JFrame implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
-        new ReccomenderStarter();
+        new RecommenderStarter();
     }
 }

@@ -1,19 +1,16 @@
 package GUI;
 
 import FileManager.Csv_handler;
-import MatrixFactorization.MakeReccomendation;
+import MatrixFactorization.MakeRecommendation;
 import MatrixFactorization.MatrixUtility;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
 import javax.swing.*;
 
-public class ReccomenderStarter extends JFrame implements ActionListener {
+public class RecommenderStarter extends JFrame implements ActionListener {
     String logo_filepath = "Recommender/resources/LUDII_Icon_transparent.png";
     User_Rec curUser = new User_Rec();
     JRadioButton [] options = new JRadioButton[5];
@@ -28,7 +25,7 @@ public class ReccomenderStarter extends JFrame implements ActionListener {
     "From 0 to 4, how much do you enjoy Puzzles?", "From 0 to 4, how much do you like Sudoku?", "From 0 to 4, how much do you enjoy games with an elements of chance?",
     "From 0 to 4, how much do enjoy games with hidden elements?", "From 0 to 4, how much do you enjoy Backgammon?", "From 0 to 4, how much do you enjoy games with two or more players?",
             "From 0 to 4, in games, how much do you enjoy cooperating with others?"};
-    public ReccomenderStarter(){
+    public RecommenderStarter(){
         ImageIcon logo = new ImageIcon(logo_filepath);
         setIconImage(logo.getImage());
         int count = 0;
@@ -69,7 +66,7 @@ public class ReccomenderStarter extends JFrame implements ActionListener {
     }
 
     public static void main(String[] args) {
-        new ReccomenderStarter();
+        new RecommenderStarter();
     }
     @Override
     public void actionPerformed(ActionEvent e) {
@@ -185,7 +182,7 @@ public class ReccomenderStarter extends JFrame implements ActionListener {
                     float min = (average_puzzle_rating-0f)/2f;
                     change = min * idx/2f;
                 }
-                curUser.set_mancala_ratings(average_puzzle_rating + change);
+                curUser.set_puzzle_ratings(average_puzzle_rating + change);
                 current++;
                 options[2].setSelected(true);
                 break;
@@ -219,7 +216,7 @@ public class ReccomenderStarter extends JFrame implements ActionListener {
                     float min = (average_chance_rating-0f)/2f;
                     change = min * idx/2f;
                 }
-                curUser.set_mancala_ratings(average_chance_rating + change);
+                curUser.set_chance_ratings(average_chance_rating + change);
                 current++;
                 options[2].setSelected(true);
                 break;
@@ -242,7 +239,7 @@ public class ReccomenderStarter extends JFrame implements ActionListener {
                     float min = (average_hidden_element_rating-0f)/2f;
                     change = min * idx/2f;
                 }
-                curUser.set_mancala_ratings(average_hidden_element_rating + change);
+                curUser.set_hidden_element_ratings(average_hidden_element_rating + change);
                 current++;
                 options[2].setSelected(true);
                 break;
@@ -276,7 +273,7 @@ public class ReccomenderStarter extends JFrame implements ActionListener {
                     float min = (average_multiplayer_rating-0f)/2f;
                     change = min * idx/2f;
                 }
-                curUser.set_mancala_ratings(average_multiplayer_rating + change);
+                curUser.set_multiplayer_ratings(average_multiplayer_rating + change);
                 current++;
                 options[2].setSelected(true);
                 break;
@@ -298,7 +295,7 @@ public class ReccomenderStarter extends JFrame implements ActionListener {
                     float min = (average_coordination_rating-0f)/2f;
                     change = min * idx/2f;
                 }
-                curUser.set_mancala_ratings(average_coordination_rating + change);
+                curUser.set_coordination_ratings(average_coordination_rating + change);
                 current++;
                 options[2].setSelected(true);
                 break;
@@ -306,11 +303,13 @@ public class ReccomenderStarter extends JFrame implements ActionListener {
                 float [][] u_r_m = Csv_handler.parse_csv_to_matrix_2("resources/MF Results/first_use_lowest.csv");
                 float [][] u = Csv_handler.parse_csv_to_matrix_2("resources/MF Results/first_use_u_matrix_final.csv");
                 float [][] q = MatrixUtility.transpose(Csv_handler.parse_csv_to_matrix_2("resources/MF Results/first_use_q_matrix_final.csv"));
-                MakeReccomendation mr = new MakeReccomendation(curUser.rating_vector, u_r_m, u, q);
+                MakeRecommendation mr = new MakeRecommendation(curUser.rating_vector, u_r_m, u, q);
                 mr.update_recs();
                 mr.user_n_most_liked_games(3);
                 String desc_format = mr.fav_game_desc();
+                System.out.println("Desc format printed out for ALex, comment lines 313 and 314 if format is correct");
                 System.out.println(desc_format);
+                dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
                 break;
 
         }

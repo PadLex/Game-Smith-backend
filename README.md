@@ -12,3 +12,14 @@ The main methods in the updated evaluation system can be found in EvalGames.java
 * loadDB - Loads two pre-built CSV files into memory for later use.
 
 * recommendScore - Recommends an evaluation score for a game based its' nearest neighbors - either BoardGameGeek scores or metric scores can be used to do this.  For this method, loadDB is necessary.
+
+## Recommender System 
+
+* Firstly, since I'm using files that are larger than 100 MB I used git LFS to push it into main, so install git LFS and pull the large files 
+using "git lfs pull" (Sorry for this)
+
+* To run my code run the Main in 'GUI/WelcomeDialogue' which is meant to introduce the user to the application
+
+* For Alex to integrate the code, you are able to access the recommended games in "GUI/ReccomenderStarter" in line 312, 
+I presented it as a String titled desc_format which should be the descriptions in the format you want, I printed the output
+so you can see, let me know if I should change it. 

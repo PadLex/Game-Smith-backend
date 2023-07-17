@@ -1,18 +1,16 @@
 package MatrixFactorization;
 
-import FileManager.Extract_Ludeme_Concept;
 import FileManager.Csv_handler;
 import GUI.User_Rec;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Objects;
 import java.util.stream.IntStream;
 
 import static FileManager.Csv_handler.*;
 
-public class MakeReccomendation {
+public class MakeRecommendation {
     float [] new_user_ratings;
     float [][] user_rating_matrix;
     float [][] u_matrix;
@@ -23,7 +21,7 @@ public class MakeReccomendation {
     float [] recs;
     String [] fav_games;
     // Make sure q_matrix is transposed (so it's k x no. of total items)
-    public MakeReccomendation(float [] new_user_ratings, float [][] user_rating_matrix, float [][]u_matrix, float[][] q_matrix){
+    public MakeRecommendation(float [] new_user_ratings, float [][] user_rating_matrix, float [][]u_matrix, float[][] q_matrix){
         this.new_user_ratings = new_user_ratings;
         this.user_rating_matrix = user_rating_matrix;
         this.u_matrix = u_matrix;
@@ -75,7 +73,7 @@ public class MakeReccomendation {
         for (int i = 0; i < fav_games_index.length; i++) {
             fav_games[i] = all_games[fav_games_index[i]];
         }
-        System.out.println(Arrays.toString(fav_games));
+        System.out.println("We recommend " + Arrays.toString(fav_games));
     }
     public String fav_game_desc(){
         StringBuilder str = new StringBuilder();
@@ -94,12 +92,6 @@ public class MakeReccomendation {
         }
         return str.toString();
     }
-//    public float [] user_most_liked_ludemes(){
-//        return new Extract_Ludeme_Concept(fav_games, pathfile_ludeme_matrix).get_most_used();
-//    }
-//    public float [] user_most_liked_concepts(){
-//        return new Extract_Ludeme_Concept(fav_games, pathfile_concept_matrix).get_most_used();
-//    }
 
     /**
      * Extract the item vectors for the items the user rated
