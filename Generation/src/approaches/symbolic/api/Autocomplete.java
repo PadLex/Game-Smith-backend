@@ -1,7 +1,7 @@
 package approaches.symbolic.api;
 
 import approaches.symbolic.CachedMapper;
-import approaches.symbolic.DescriptionParser;
+import approaches.symbolic.PartialCompiler;
 import approaches.symbolic.SymbolMapper;
 import approaches.symbolic.nodes.ArrayNode;
 import approaches.symbolic.nodes.EmptyNode;
@@ -12,8 +12,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-import static approaches.symbolic.DescriptionParser.compilePartialDescription;
-import static approaches.symbolic.DescriptionParser.standardize;
+import static approaches.symbolic.PartialCompiler.compilePartialDescription;
+import static approaches.symbolic.PartialCompiler.standardize;
 
 
 public class Autocomplete {
@@ -35,7 +35,7 @@ public class Autocomplete {
             return List.of(new Completion("Game", "game.Game"));
         if (standardInput.length() < 5)
             return new ArrayList<>();
-        DescriptionParser.PartialCompilation partialCompilation = compilePartialDescription(standardInput, symbolMapper);
+        PartialCompiler.PartialCompilation partialCompilation = compilePartialDescription(standardInput, symbolMapper);
         GeneratorNode node = partialCompilation.consistentGames.peek().consistentGame;
         List<Completion> completions = new ArrayList<>();
 

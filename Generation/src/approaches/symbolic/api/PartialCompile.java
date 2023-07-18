@@ -7,7 +7,7 @@ import supplementary.experiments.eval.EvalGames;
 
 import java.util.Scanner;
 
-import static approaches.symbolic.DescriptionParser.*;
+import static approaches.symbolic.PartialCompiler.*;
 
 /*
     * Used by the extension to evaluate up to what point a game description compiles.

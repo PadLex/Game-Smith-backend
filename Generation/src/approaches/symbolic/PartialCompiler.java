@@ -11,7 +11,7 @@ import java.util.regex.Pattern;
     *
     * @author Alexander Padula
  */
-public class DescriptionParser {
+public class PartialCompiler {
     static final Pattern endOfParameter = Pattern.compile("[ )}]");
 
     public static class CompilationException extends Exception {

@@ -13,8 +13,8 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
-import static approaches.symbolic.DescriptionParser.compileDescription;
-import static approaches.symbolic.DescriptionParser.standardize;
+import static approaches.symbolic.PartialCompiler.compileDescription;
+import static approaches.symbolic.PartialCompiler.standardize;
 
 public class TestDescriptionParser {
     static void testLudiiLibrary(SymbolMapper symbolMapper, int limit) throws IOException {
