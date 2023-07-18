@@ -2,7 +2,7 @@
 This repository exclusively contains the Generation classes used by the [VSCode extension](https://github.com/PadLex/Ludii-VSCode-extension). The `alex` branch of my [fork](https://github.com/PadLex/Ludii/tree/alex) of the ludii repository contains most of my work.
 
 ### Symbol Mapper
-`approaches.symbolic.SymbolMapper` Maps symbols to the symbols which can be used to initialize them. It pre-computes all combinations of clauses with different optional parameters, and-groups and or-groups. Based on a set of previously selected parameters, the next parameter's possibilities are filtered on-request.
+`approaches.symbolic.SymbolMapper` Maps symbols to the symbols which can be used to initialize them. It pre-computes all combinations of clauses with different optional parameters, and-groups and or-groups. Given a set of previously selected parameters, the possibilities for the next parameter are filtered on-request.
 
 ### GenerationNodes
 `approaches.symbolic.nodes.*` These 8 classes are used to represent the tree-like structure of ludii games. Each node corresponds to a symbol and is responsible for interfacing with the SymbolMapper to obtain possible child/parameter nodes. They are also responsible for compilation, which allows them to cache previously compiled ludeme branches when a ludeme tree is modified. They make use of the `SymbolMapper`
