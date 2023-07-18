@@ -1,3 +1,20 @@
+## Game Generation
+This repository exclusively contains the Generation classes used by the [VSCode extension][https://github.com/PadLex/Ludii-VSCode-extension]. The `alex` branch of [my fork][https://github.com/PadLex/Ludii/tree/alex] of the ludii repository contains most of my work.
+
+### Symbol Mapper
+`approaches.symbolic.SymbolMapper` Maps symbols to the symbols which can be used to initialize them. It pre-computes all combinations of clauses with different optional parameters, and-groups and or-groups. Possible next parameters are then filtered on-request, based on the previously selected parameters.
+
+### GenerationNodes
+`approaches.symbolic.nodes.*` These 8 classes are used to represent the tree-like structure of ludii games. Each node corresponds to a symbol and is responsible for interfacing with the SymbolMapper to obtain possible child/parameter nodes. They are also responsible for compilation, which allows them to cache previously compiled ludeme branches when a ludeme tree is modified. They make use of the `SymbolMapper`
+
+## Partial Compiler
+`approaches.symbolic.PartialCompiler` Compiles possibly broken game descriptions into a tree of `GenerationNodes`. It's advantage over a standard compiler are that:
+ * It returns partial compilations states, meaning that a game generator can recover by replacing a problematice ludeme without re-compiling the whole game.
+ * It reppresents games as trees of GenerationNodes, which allow for easy and efficients alterations to the ludeme tree.
+ * It's slighly faster then the standard compiler, and there are still some valuable optimizations that could be made.
+
+### API
+`approaches.symbolic.api.*` These 4 classes interface with the VSCode extension.
 
 ## Evaluation Metrics
 
