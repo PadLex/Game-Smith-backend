@@ -300,6 +300,7 @@ public class RecommenderStarter extends JFrame implements ActionListener {
                 options[2].setSelected(true);
                 break;
             case 12:
+                // Print working directory
                 float [][] u_r_m = Csv_handler.parse_csv_to_matrix_2("Recommender/resources/MF Results/first_use_lowest.csv");
                 float [][] u = Csv_handler.parse_csv_to_matrix_2("Recommender/resources/MF Results/first_use_u_matrix_lowest.csv");
                 float [][] q = MatrixUtility.transpose(Csv_handler.parse_csv_to_matrix_2("Recommender/resources/MF Results/first_use_q_matrix_lowest.csv"));

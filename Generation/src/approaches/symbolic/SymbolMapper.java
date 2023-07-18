@@ -12,7 +12,9 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
- * Maps symbols to the symbols which can be used to initialize them.
+ * Maps symbols to the symbols which can be used to initialize them. It pre-computes all combinations of clauses with
+ * different optional parameters, and-groups and or-groups. Possible next parameters are then filtered on-request, based on the previously
+ * selected parameters.
  *
  * @author Alexander Padula
  */
@@ -113,6 +115,7 @@ public class SymbolMapper {
 
         for (Symbol symbol : symbols) {
             for (Symbol other : symbols) {
+                // TODO ask Cameron to help me simplify this. I've obtained all of these rules through trial and error.
                 boolean isCompatible = symbol.cls().isAssignableFrom(other.cls()) || symbol.cls().isAssignableFrom(other.returnType().cls());
                 boolean isSubLudeme = other.ludemeType() == Symbol.LudemeType.SubLudeme;
                 boolean isInitializable =
