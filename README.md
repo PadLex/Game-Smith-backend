@@ -1,5 +1,5 @@
 ## Game Generation
-This repository exclusively contains the Generation classes used by the [VSCode extension][https://github.com/PadLex/Ludii-VSCode-extension]. The `alex` branch of [my fork][https://github.com/PadLex/Ludii/tree/alex] of the ludii repository contains most of my work.
+This repository exclusively contains the Generation classes used by the [VSCode extension](https://github.com/PadLex/Ludii-VSCode-extension). The `alex` branch of [my fork](https://github.com/PadLex/Ludii/tree/alex) of the ludii repository contains most of my work.
 
 ### Symbol Mapper
 `approaches.symbolic.SymbolMapper` Maps symbols to the symbols which can be used to initialize them. It pre-computes all combinations of clauses with different optional parameters, and-groups and or-groups. Based on a set of previously selected parameters, the next parameter's possibilities are filtered on-request.
