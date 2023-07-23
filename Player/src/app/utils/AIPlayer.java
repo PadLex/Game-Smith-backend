@@ -9,6 +9,7 @@ import main.grammar.Report;
 import metrics.Evaluation;
 import metrics.Metric;
 import supplementary.experiments.EvalGamesThread;
+import supplementary.experiments.RecommendGamesThread;
 
 /**
  * Utility to load AI players and launch the Evaluation dialog for the desktop player.
@@ -44,6 +45,17 @@ public class AIPlayer
 		evalThread.start();
 	}
 	
+	//-------------------------------------------------------------------------
+
+	public static void RecommendedEvaluation(final PlayerApp app, final int k, final boolean euclidean, final boolean compareMetrics, final Report report)
+	{
+		final Game game = app.manager().ref().context().game();
+
+		final RecommendGamesThread recommendThread = RecommendGamesThread.construct(game, k, euclidean, compareMetrics, report);
+		recommendThread.setDaemon(true);
+		recommendThread.start();
+	}
+
 	//-------------------------------------------------------------------------
 	
 }
