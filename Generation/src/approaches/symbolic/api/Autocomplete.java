@@ -28,22 +28,27 @@ public class Autocomplete {
         }
     }
 
-    // TODO make it consider possibilities bellow the top of the stack
-    public static List<Completion> autocomplete(String rawInput, SymbolMapper symbolMapper) {
-        String standardInput = standardize(rawInput);
-        if (standardInput.isEmpty())
-            return List.of(new Completion("Game", "game.Game"));
-        if (standardInput.length() < 5)
-            return new ArrayList<>();
+    public static List<Completion> autocomplete(String standardInput, SymbolMapper symbolMapper) {
+        if ("(gam".startsWith(standardInput))
+            return List.of(new Completion("(game", "game.Game"));
+
         PartialCompiler.PartialCompilation partialCompilation = compilePartialDescription(standardInput, symbolMapper);
         GeneratorNode node = partialCompilation.consistentGames.peek().consistentGame;
-        List<Completion> completions = new ArrayList<>();
 
-        if (standardInput.chars().filter(c -> c == ' ').count() != node.root().description().chars().filter(c -> c == ' ').count())
-            return completions;
+        String trailing = standardInput.substring(node.root().description().length()).strip();
+
+        return completions(node, trailing, symbolMapper);
+    }
+
+    // TODO make it consider possibilities bellow the top of the stack
+    public static List<Completion> completions(GeneratorNode node, String trailing, SymbolMapper symbolMapper) {
+
+        List<Completion> completions = new ArrayList<>();
 
         for (GeneratorNode option: node.nextPossibleParameters(symbolMapper, null, false, true)) {
             assert !(option instanceof EmptyNode);
+            if (!option.description().startsWith(trailing))
+                continue;
 
             GeneratorNode newNode = node.copyUp();
             newNode.addParameter(option);
@@ -71,7 +76,9 @@ public class Autocomplete {
         SymbolMapper symbolMapper = new CachedMapper();
 
         while (sc.hasNextLine()) {
-            for (Completion completion : autocomplete(sc.nextLine(), symbolMapper)) {
+            String input = sc.nextLine();
+            input = input.replace("\\n", "\n");
+            for (Completion completion : autocomplete(standardize(input), symbolMapper)) {
                 System.out.print(completion.completion + "|" + completion.description + "||");
             }
             System.out.println();
