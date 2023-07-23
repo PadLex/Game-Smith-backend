@@ -92,7 +92,7 @@ public class EvalGames
 			if (!FileHandling.shouldIgnoreLudEvaluation(s))
 			{
 //				System.out.println("\n" + s);
-				final String gameName = s.split("\\/")[s.split("\\/").length-1];
+				final String gameName = s.split("//")[s.split("//").length-1];
 				final Game tempGame = GameLoader.loadGameFromName(gameName);
 				final List<Ruleset> rulesets = tempGame.description().rulesets();
 				
@@ -283,8 +283,10 @@ public class EvalGames
 		gameRatings = new HashMap<>();
         try
         {
+			//Print working directory
+			System.out.println("Working Directory = " + System.getProperty("user.dir"));
             // what is attempted here is to load the game concepts correctly into a form that can be readily accessed and used in the recommendScore method
-            FileReader fr = new FileReader("..\\Common\\res\\recs\\game_concept_matrix_allconcepts_new.csv");
+            FileReader fr = new FileReader("../Common/res/recs/game_concept_matrix_allconcepts_new.csv");
             BufferedReader br = new BufferedReader(fr);
             String line;
             int lineCount = 0;
@@ -312,7 +314,7 @@ public class EvalGames
 			br.close();
 			fr.close();
 
-			fr = new FileReader("..\\Common\\res\\recs\\RatingGameMatrix.csv");
+			fr = new FileReader("../Common/res/recs/RatingGameMatrix.csv");
 			br = new BufferedReader(fr);
 			String[] gameNames = br.readLine().split(",");
 			String[] gameScores = br.readLine().split(",");
@@ -533,7 +535,7 @@ public class EvalGames
 	{
 		try
 		{
-			FileReader fr = new FileReader("Common\\res\\recs\\UserRatingMatrix_Correct.csv");
+			FileReader fr = new FileReader("Common/res/recs/UserRatingMatrix_Correct.csv");
 			BufferedReader br = new BufferedReader(fr);
 			String line;
 			int lineCount = 0;
@@ -580,7 +582,7 @@ public class EvalGames
 				else outputString.append(ratings.get(i)).append(",");
 			}
 //			System.out.println("averaging and output string complete");
-			BufferedWriter bw = new BufferedWriter(new FileWriter("Common\\res\\recs\\RatingGameMatrix.csv"));
+			BufferedWriter bw = new BufferedWriter(new FileWriter("Common/res/recs/RatingGameMatrix.csv"));
 			bw.write(outputString.toString());
 			bw.close();
 			br.close();
