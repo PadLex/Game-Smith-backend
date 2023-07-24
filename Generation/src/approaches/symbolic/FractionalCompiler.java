@@ -14,7 +14,19 @@ import java.util.regex.Pattern;
 public class FractionalCompiler {
     static final Pattern endOfParameter = Pattern.compile("[ )}]");
 
-    public static class CompilationException extends Exception {
+    public static class InternalException extends Exception {
+        public InternalException(String errorMessage) {
+            super(errorMessage);
+        }
+    }
+
+    public static class MissmatchException extends InternalException {
+        public MissmatchException(String errorMessage) {
+            super(errorMessage);
+        }
+    }
+
+    public static class CompilationException extends InternalException {
         public CompilationException(String errorMessage) {
             super(errorMessage);
         }
@@ -23,23 +35,23 @@ public class FractionalCompiler {
     public static class CompilationState {
         public final GeneratorNode consistentGame;
         public final List<GeneratorNode> remainingOptions;
-        public final List<CompilationException> exceptions;
+        public final List<InternalException> exceptions;
 
-        public CompilationState(GeneratorNode consistentGame, List<GeneratorNode> remainingOptions, List<CompilationException> exceptions) {
+        public CompilationState(GeneratorNode consistentGame, List<GeneratorNode> remainingOptions) {
             this.consistentGame = consistentGame;
             this.remainingOptions = remainingOptions;
-            this.exceptions = exceptions;
+            this.exceptions = new ArrayList<>();
         }
     }
 
     /*
      * Compiles a description of a game into a tree of GeneratorNodes.
-     * @param expanded The standardized description of the game
+     * @param standardInput The standardized description of the game
      * @param symbolMapper The SymbolMapper to use
      * @return The root of the tree of GeneratorNodes. Crashes if it encounters an exception
      */
-    public static GameNode compileComplete(String expanded, SymbolMapper symbolMapper) {
-        Stack<CompilationState> partialCompilation = compileFraction(expanded, symbolMapper);
+    public static GameNode compileComplete(String standardInput, SymbolMapper symbolMapper) {
+        Stack<CompilationState> partialCompilation = compileFraction(standardInput, symbolMapper);
 
         if (!partialCompilation.peek().exceptions.isEmpty())
             throw new RuntimeException(partialCompilation.peek().exceptions.get(0)); // TODO display most important errors
@@ -51,31 +63,31 @@ public class FractionalCompiler {
 
     /*
         * Compiles a description of a game into a tree of GeneratorNodes.
-        * @param expanded The standardized description of the game
+        * @param standardInput The standardized description of the game
         * @param symbolMapper The SymbolMapper to use
         * @return A PartialCompilation containing the consistent games and any exceptions that occurred
      */
-    public static Stack<CompilationState> compileFraction(String expanded, SymbolMapper symbolMapper) {
+    public static Stack<CompilationState> compileFraction(String standardInput, SymbolMapper symbolMapper) {
         Stack<CompilationState> consistentGames = new Stack<>();
         GeneratorNode gameNode = new GameNode();
         List<GeneratorNode> nextOptions = gameNode.nextPossibleParameters(symbolMapper, null, true, false);
-        consistentGames.add(new CompilationState(gameNode, nextOptions, List.of()));
-        return compileFraction(expanded, consistentGames, symbolMapper);
+        consistentGames.add(new CompilationState(gameNode, nextOptions));
+        return compileFraction(standardInput, consistentGames, symbolMapper);
     }
 
     /*
      * Compiles a description of a game into a tree of GeneratorNodes, starting from a tree that has already been
      * partially compiled.
-     * @param expanded The standardized description of the game
+     * @param standardInput The standardized description of the game
      * @param consistentGames The stack of consistent games to start from
      * @param symbolMapper The SymbolMapper to use
      * @return A PartialCompilation containing the consistent games and any exceptions that occurred
      */
-    public static Stack<CompilationState> compileFraction(String expanded, Stack<CompilationState> currentStack, SymbolMapper symbolMapper) {
+    public static Stack<CompilationState> compileFraction(String standardInput, Stack<CompilationState> currentStack, SymbolMapper symbolMapper) {
         // If a complete game isn't found, the longest consistent games are returned
         Stack<CompilationState> longestCompilations = (Stack<CompilationState>) currentStack.clone();
 
-        // Loop until a consistent game's description matches the expanded description
+        // Loop until a consistent game's description matches the standardInput description
         while (true) {
 
             // If the stack is empty, all paths lead to dead ends
@@ -84,57 +96,57 @@ public class FractionalCompiler {
 
             // Since we are performing a depth-first search, we can just pop the most recent game, option pair
             CompilationState state = currentStack.pop();
-//            System.out.println(state.consistentGame.root().description());
+            System.out.println(state.consistentGame.root().description());
 
             // If we haven't reached a dead end, remember to consider the next option
             if (state.remainingOptions.size() > 1)
-                currentStack.add(new CompilationState(state.consistentGame, state.remainingOptions.subList(1, state.remainingOptions.size()), List.of()));
+                currentStack.add(new CompilationState(state.consistentGame, state.remainingOptions.subList(1, state.remainingOptions.size())));
 
-            // Loops through all options and adds them to the stack if they are consistent with the expanded description
+            // Loops through all options and adds them to the stack if they are consistent with the standardInput description
             try {
-                GeneratorNode newNode = appendOption(state.consistentGame, state.remainingOptions.get(0), expanded);
-                if (newNode != null) {
-                    assert !newNode.isComplete() || newNode instanceof GameNode;
-                    List<GeneratorNode> nextOptions = newNode.nextPossibleParameters(symbolMapper, null, true, false);
-                    CompilationState newCompilationState = new CompilationState(newNode, nextOptions, List.of());
-                    currentStack.add(newCompilationState);
+                GeneratorNode newNode = appendOption(state.consistentGame, state.remainingOptions.get(0), standardInput);
 
-                    // Update longestCompilations
-                    int newLength = newNode.root().description().length();
-                    int oldLength = longestCompilations.peek().consistentGame.root().description().length();
-                    if (newLength > oldLength)
-                        longestCompilations.clear();
-                    if (newLength >= oldLength)
-                        longestCompilations.add(newCompilationState);
-                }
+                assert !newNode.isComplete() || newNode instanceof GameNode;
+                List<GeneratorNode> nextOptions = newNode.nextPossibleParameters(symbolMapper, null, true, false);
+                CompilationState newCompilationState = new CompilationState(newNode, nextOptions);
+                currentStack.add(newCompilationState);
+
+                // Update longestCompilations
+                int newLength = newNode.root().description().length();
+                int oldLength = longestCompilations.peek().consistentGame.root().description().length();
+                if (newLength > oldLength)
+                    longestCompilations.clear();
+                if (newLength >= oldLength)
+                    longestCompilations.add(newCompilationState);
+
 
                 // Successful termination condition
                 if (newNode instanceof GameNode && newNode.isComplete()) {
                     Stack<CompilationState> out = new Stack<>();
-                    out.add(new CompilationState(newNode, List.of(), List.of()));
+                    out.add(new CompilationState(newNode, List.of()));
                     return out;
                 }
 
-            } catch (CompilationException e) {
+            } catch (InternalException e) {
                 state.exceptions.add(e);
             }
         }
     }
 
     /*
-     * Appends an option to a game, if it is consistent with the expanded description.
+     * Appends an option to a game, if it is consistent with the standardInput description.
      * @param node The game to append to
      * @param option The option to append
-     * @param expanded The standardized description
-     * @return The new game, or null if the option is not consistent with the expanded description
+     * @param standardInput The standardized description
+     * @return The new game, or null if the option is not consistent with the standardInput description
      */
-    static GeneratorNode appendOption(GeneratorNode node, GeneratorNode option, String expanded) throws CompilationException {
+    static GeneratorNode appendOption(GeneratorNode node, GeneratorNode option, String standardInput) throws InternalException {
         String currentDescription = node.root().description();
 
-        if (currentDescription.length() >= expanded.length())
-            return null;
+        if (currentDescription.length() >= standardInput.length())
+            throw new MissmatchException("Node's description is longer then the input's");
 
-        String trailingDescription = expanded.substring(currentDescription.length()).strip();
+        String trailingDescription = standardInput.substring(currentDescription.length()).strip();
 
         // Parse primitive options
         if (option instanceof PrimitiveNode primitiveOption) {
@@ -143,18 +155,18 @@ public class FractionalCompiler {
             if (option.symbol().label != null) {
                 String prefix = option.symbol().label + ":";
                 if (!trailingDescription.startsWith(prefix))
-                    return null;
+                    throw new MissmatchException("Missing primitive label");
                 trailingDescription = trailingDescription.substring(prefix.length()).strip();
             }
 
             switch (primitiveOption.getType()) {
                 case STRING -> {
                     if (trailingDescription.isEmpty() || trailingDescription.charAt(0) != '"')
-                        return null;
+                        throw new MissmatchException("Missing the opening quote");
 
                     int end = trailingDescription.indexOf('"', 1);
                     if (end == -1)
-                        return null;
+                        throw new MissmatchException("Missing the terminal quote");
 
                     primitiveOption.setValue(trailingDescription.substring(1, end));
                 }
@@ -162,12 +174,12 @@ public class FractionalCompiler {
                     Matcher match = endOfParameter.matcher(trailingDescription);
 
                     if (!match.find())
-                        return null;
+                        throw new MissmatchException("Can't find closing end of parameter");
 
                     try {
                         primitiveOption.setUnparsedValue(trailingDescription.substring(0, match.start()));
                     } catch (NumberFormatException e) {
-                        return null;
+                        throw new MissmatchException("Not a number");
                     }
                 }
                 case BOOLEAN -> { // TODO maybe check if after the True/False there is a space or bracket
@@ -176,7 +188,7 @@ public class FractionalCompiler {
                     } else if (trailingDescription.startsWith("False")) {
                         primitiveOption.setUnparsedValue("False");
                     } else {
-                        return null;
+                        throw new MissmatchException("Not a boolean");
                     }
                 }
             }
@@ -185,7 +197,8 @@ public class FractionalCompiler {
             option.setParent(newNode);
             newNode.addParameter(option);
 
-            assert expanded.startsWith(newNode.root().description());
+//            System.out.println(newNode.root().description());
+            assert standardInput.startsWith(newNode.root().description());
             return newNode;
         }
 
@@ -194,8 +207,10 @@ public class FractionalCompiler {
             // option.description accounts for the label already
             if (!(option instanceof EmptyNode) && !(option instanceof EndOfClauseNode)) {
 
+                System.out.println("trailingDescription:" + trailingDescription);
+                System.out.println("option:" + option.description());
                 if (!trailingDescription.startsWith(option.description()))
-                    return null;
+                    throw new MissmatchException("Wrong class");
 
                 if (trailingDescription.length() > option.description().length()) {
                     char nextChar = trailingDescription.charAt(option.description().length());
@@ -203,7 +218,7 @@ public class FractionalCompiler {
                     boolean isEnd = nextChar == ' ' || nextChar == ')' || nextChar == '}' || nextChar == '(' || nextChar == '{' || currentChar == '(' || currentChar == '{';
 
                     if (!isEnd)
-                        return null;
+                        throw new MissmatchException("Wrong class 2"); // TODO why not use end of parameter like before?
                 }
 
             }
@@ -211,15 +226,15 @@ public class FractionalCompiler {
             if (option instanceof EndOfClauseNode) {
                 char currentChar = trailingDescription.charAt(0);
                 if (currentChar != ')' && currentChar != '}')
-                    return null;
+                    throw new MissmatchException("Not a closing bracket"); // TODO I could probably handle this with the trailingDescription
             }
 
             GeneratorNode nodeCopy = node.copyUp();
             option.setParent(nodeCopy);
             nodeCopy.addParameter(option);
 
-            if (!expanded.startsWith(nodeCopy.root().description())) // If slow, remove for complete games
-                return null;
+            if (!standardInput.startsWith(nodeCopy.root().description())) // If slow, remove for complete games
+                throw new MissmatchException("Something Else is wromg"); // TODO CHECK
 
             if (!option.isComplete())
                 return option;
