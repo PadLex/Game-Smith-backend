@@ -16,7 +16,7 @@ import java.util.Scanner;
  *
  * @author Alexander Padula
  */
-public class LegacyCompile {
+public class LegacyCompilerEndpoint {
     public static void main(String[] args) throws InterruptedException {
         Scanner sc = new Scanner(System.in);
         System.out.println("Ready");

@@ -11,7 +11,7 @@ import java.util.regex.Pattern;
     *
     * @author Alexander Padula
  */
-public class PartialCompiler {
+public class FractionalCompiler {
     static final Pattern endOfParameter = Pattern.compile("[ )}]");
 
     public static class CompilationException extends Exception {
@@ -23,20 +23,12 @@ public class PartialCompiler {
     public static class CompilationState {
         public final GeneratorNode consistentGame;
         public final List<GeneratorNode> remainingOptions;
+        public final List<CompilationException> exceptions;
 
-        public CompilationState(GeneratorNode consistentGame, List<GeneratorNode> remainingOptions) {
+        public CompilationState(GeneratorNode consistentGame, List<GeneratorNode> remainingOptions, List<CompilationException> exceptions) {
             this.consistentGame = consistentGame;
             this.remainingOptions = remainingOptions;
-        }
-    }
-
-    public static class PartialCompilation {
-        public final Stack<CompilationState> consistentGames;
-        public final CompilationException exception;
-
-        public PartialCompilation(Stack<CompilationState> consistentGames, CompilationException exception) {
-            this.consistentGames = consistentGames;
-            this.exception = exception;
+            this.exceptions = exceptions;
         }
     }
 
@@ -46,13 +38,15 @@ public class PartialCompiler {
      * @param symbolMapper The SymbolMapper to use
      * @return The root of the tree of GeneratorNodes. Crashes if it encounters an exception
      */
-    public static GameNode compileDescription(String expanded, SymbolMapper symbolMapper) {
-        PartialCompilation partialCompilation = compilePartialDescription(expanded, symbolMapper);
+    public static GameNode compileComplete(String expanded, SymbolMapper symbolMapper) {
+        Stack<CompilationState> partialCompilation = compileFraction(expanded, symbolMapper);
 
-        if (partialCompilation.exception != null)
-            throw new RuntimeException(partialCompilation.exception);
+        if (!partialCompilation.peek().exceptions.isEmpty())
+            throw new RuntimeException(partialCompilation.peek().exceptions.get(0)); // TODO display most important errors
 
-        return partialCompilation.consistentGames.peek().consistentGame.root();
+        assert partialCompilation.size() == 1;
+
+        return partialCompilation.peek().consistentGame.root();
     }
 
     /*
@@ -61,12 +55,12 @@ public class PartialCompiler {
         * @param symbolMapper The SymbolMapper to use
         * @return A PartialCompilation containing the consistent games and any exceptions that occurred
      */
-    public static PartialCompilation compilePartialDescription(String expanded, SymbolMapper symbolMapper) {
+    public static Stack<CompilationState> compileFraction(String expanded, SymbolMapper symbolMapper) {
         Stack<CompilationState> consistentGames = new Stack<>();
         GeneratorNode gameNode = new GameNode();
         List<GeneratorNode> nextOptions = gameNode.nextPossibleParameters(symbolMapper, null, true, false);
-        consistentGames.add(new CompilationState(gameNode, nextOptions));
-        return compilePartialDescription(expanded, consistentGames, symbolMapper);
+        consistentGames.add(new CompilationState(gameNode, nextOptions, List.of()));
+        return compileFraction(expanded, consistentGames, symbolMapper);
     }
 
     /*
@@ -77,21 +71,24 @@ public class PartialCompiler {
      * @param symbolMapper The SymbolMapper to use
      * @return A PartialCompilation containing the consistent games and any exceptions that occurred
      */
-    public static PartialCompilation compilePartialDescription(String expanded, Stack<CompilationState> consistentGames, SymbolMapper symbolMapper) {
-        // If a complete game isn't found, the state of the stack is returned
-        Stack<CompilationState> lastValidStack = consistentGames;
-        Stack<CompilationState> currentStack = (Stack<CompilationState>) consistentGames.clone();
-
-        CompilationException compilationException = null;
+    public static Stack<CompilationState> compileFraction(String expanded, Stack<CompilationState> currentStack, SymbolMapper symbolMapper) {
+        // If a complete game isn't found, the longest consistent games are returned
+        Stack<CompilationState> longestCompilations = (Stack<CompilationState>) currentStack.clone();
 
         // Loop until a consistent game's description matches the expanded description
         while (true) {
-            // Since we are performing a depth-first search, we can just pop the most recent partial game
-            CompilationState state = currentStack.pop();
 
-            // If there are no more options, we have reached a dead end
+            // If the stack is empty, all paths lead to dead ends
+            if (currentStack.isEmpty())
+                return longestCompilations;
+
+            // Since we are performing a depth-first search, we can just pop the most recent game, option pair
+            CompilationState state = currentStack.pop();
+//            System.out.println(state.consistentGame.root().description());
+
+            // If we haven't reached a dead end, remember to consider the next option
             if (state.remainingOptions.size() > 1)
-                currentStack.add(new CompilationState(state.consistentGame, state.remainingOptions.subList(1, state.remainingOptions.size())));
+                currentStack.add(new CompilationState(state.consistentGame, state.remainingOptions.subList(1, state.remainingOptions.size()), List.of()));
 
             // Loops through all options and adds them to the stack if they are consistent with the expanded description
             try {
@@ -99,28 +96,27 @@ public class PartialCompiler {
                 if (newNode != null) {
                     assert !newNode.isComplete() || newNode instanceof GameNode;
                     List<GeneratorNode> nextOptions = newNode.nextPossibleParameters(symbolMapper, null, true, false);
-                    currentStack.add(new CompilationState(newNode, nextOptions));
+                    CompilationState newCompilationState = new CompilationState(newNode, nextOptions, List.of());
+                    currentStack.add(newCompilationState);
+
+                    // Update longestCompilations
+                    int newLength = newNode.root().description().length();
+                    int oldLength = longestCompilations.peek().consistentGame.root().description().length();
+                    if (newLength > oldLength)
+                        longestCompilations.clear();
+                    if (newLength >= oldLength)
+                        longestCompilations.add(newCompilationState);
                 }
 
                 // Successful termination condition
-                if (newNode instanceof GameNode && newNode.isComplete())
-                    return new PartialCompilation(currentStack, null);
+                if (newNode instanceof GameNode && newNode.isComplete()) {
+                    Stack<CompilationState> out = new Stack<>();
+                    out.add(new CompilationState(newNode, List.of(), List.of()));
+                    return out;
+                }
 
             } catch (CompilationException e) {
-                compilationException = e;
-            }
-
-            // If the stack is empty, all paths lead to dead ends
-            if (currentStack.isEmpty()) {
-                if (compilationException == null)
-                    compilationException = new CompilationException("Syntax error");
-
-                return new PartialCompilation(lastValidStack, compilationException);
-            }
-
-            // If the current game is longer than the last valid game, update the last valid game.
-            if (currentStack.peek().consistentGame.root().description().length() > lastValidStack.peek().consistentGame.root().description().length()) {
-                lastValidStack = (Stack<CompilationState>) currentStack.clone();
+                state.exceptions.add(e);
             }
         }
     }

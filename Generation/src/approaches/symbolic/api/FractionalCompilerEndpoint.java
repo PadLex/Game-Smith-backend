@@ -6,8 +6,9 @@ import approaches.symbolic.nodes.GameNode;
 import supplementary.experiments.eval.EvalGames;
 
 import java.util.Scanner;
+import java.util.Stack;
 
-import static approaches.symbolic.PartialCompiler.*;
+import static approaches.symbolic.FractionalCompiler.*;
 
 /*
     * Used by the extension to evaluate up to what point a game description compiles.
@@ -15,7 +16,7 @@ import static approaches.symbolic.PartialCompiler.*;
     *
     * @author Alexander Padula
  */
-public class PartialCompile {
+public class FractionalCompilerEndpoint {
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
         System.out.println("Ready");
@@ -25,10 +26,10 @@ public class PartialCompile {
         while (sc.hasNextLine()) {
             String input = sc.nextLine();
             input = input.replace("\\n", "\n");
-            PartialCompilation partialCompilation = compilePartialDescription(standardize(input), symbolMapper);
-            GameNode gameNode = partialCompilation.consistentGames.peek().consistentGame.root();
+            Stack<CompilationState> partialCompilation = compileFraction(standardize(input), symbolMapper);
+            GameNode gameNode = partialCompilation.peek().consistentGame.root();
             String compilingPortion = gameNode.description();
-            boolean compiles = partialCompilation.exception == null;
+            boolean compiles = partialCompilation.peek().exceptions.isEmpty();
             System.out.println(compiles? 1:0);
             System.out.println(compiles? EvalGames.defaultEvaluationFast(gameNode.compile()):0);
             System.out.println(destandardize(input, compilingPortion).replace("\n", "\\n"));

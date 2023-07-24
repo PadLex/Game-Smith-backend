@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Wraps a SymbolMapper and caches the results of the nextPossibilities method.
+ * Extends SymbolMapper by memoizing the results of the nextPossibilities method.
  */
 public class CachedMapper extends SymbolMapper {
     public Map<String, List<MappedSymbol>> cachedQueries = new HashMap<>();

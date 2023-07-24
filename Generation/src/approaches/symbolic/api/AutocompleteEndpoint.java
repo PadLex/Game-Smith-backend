@@ -1,7 +1,7 @@
 package approaches.symbolic.api;
 
 import approaches.symbolic.CachedMapper;
-import approaches.symbolic.PartialCompiler;
+import approaches.symbolic.FractionalCompiler;
 import approaches.symbolic.SymbolMapper;
 import approaches.symbolic.nodes.ArrayNode;
 import approaches.symbolic.nodes.EmptyNode;
@@ -11,12 +11,13 @@ import approaches.symbolic.nodes.GeneratorNode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.Stack;
 
-import static approaches.symbolic.PartialCompiler.compilePartialDescription;
-import static approaches.symbolic.PartialCompiler.standardize;
+import static approaches.symbolic.FractionalCompiler.compileFraction;
+import static approaches.symbolic.FractionalCompiler.standardize;
 
 
-public class Autocomplete {
+public class AutocompleteEndpoint {
 
     static class Completion {
         final String completion;
@@ -32,16 +33,21 @@ public class Autocomplete {
         if ("(gam".startsWith(standardInput))
             return List.of(new Completion("(game", "game.Game"));
 
-        PartialCompiler.PartialCompilation partialCompilation = compilePartialDescription(standardInput, symbolMapper);
-        GeneratorNode node = partialCompilation.consistentGames.peek().consistentGame;
+        Stack<FractionalCompiler.CompilationState>  partialCompilation = FractionalCompiler.compileFraction(standardInput, symbolMapper);
 
-        String trailing = standardInput.substring(node.root().description().length()).strip();
+        List<Completion> completions = new ArrayList<>();
 
-        return completions(node, trailing, symbolMapper);
+        for (FractionalCompiler.CompilationState state: partialCompilation) {
+            GeneratorNode node = state.consistentGame;
+            String trailing = standardInput.substring(node.root().description().length()).strip();
+            completions.addAll(buildCompletions(node, trailing, symbolMapper));
+        }
+
+        return completions;
     }
 
     // TODO make it consider possibilities bellow the top of the stack
-    public static List<Completion> completions(GeneratorNode node, String trailing, SymbolMapper symbolMapper) {
+    public static List<Completion> buildCompletions(GeneratorNode node, String trailing, SymbolMapper symbolMapper) {
 
         List<Completion> completions = new ArrayList<>();
 

@@ -1,10 +1,9 @@
 package approaches.symbolic;
 
-import approaches.symbolic.nodes.GameNode;
-import compiler.Compiler;
 import main.grammar.Description;
 import main.grammar.Report;
 import main.options.UserSelections;
+import parser.Parser;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -13,20 +12,13 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
-import static approaches.symbolic.PartialCompiler.compileDescription;
-import static approaches.symbolic.PartialCompiler.standardize;
-
-public class TestDescriptionParser {
+public class FractionalCompilerCorrectness {
     static void testLudiiLibrary(SymbolMapper symbolMapper, int limit) throws IOException {
         List<String> skip = List.of("Kriegspiel (Chess).lud", "Throngs.lud", "Tai Shogi.lud", "Taikyoku Shogi.lud", "Yonin Seireigi.lud", "Yonin Shogi.lud"); // "To Kinegi tou Lagou.lud"
 
         String gamesRoot = "./Common/res/lud/board";
         List<Path> paths = Files.walk(Paths.get(gamesRoot)).filter(Files::isRegularFile).filter(path -> path.toString().endsWith(".lud")).sorted().limit(limit).toList();
         int count = 0;
-        int preCompilation = 0;
-        int compile = 0;
-        int recompile = 0;
-        int fromString = 0;
         for (Path path : paths) {
             String gameStr = Files.readString(path);
 
@@ -36,82 +28,18 @@ public class TestDescriptionParser {
             }
 
             if (skip.contains(path.getFileName().toString())) {
-                System.out.println("Skipping " + path.getFileName());
+                System.out.println("Skipping skip" + path.getFileName());
                 continue;
             }
 
             System.out.println("\nLoading " + path.getFileName() + " (" + (count + 1) + " of " + paths.size() + " games)");
 
             Description description = new Description(gameStr);
-
             final UserSelections userSelections = new UserSelections(new ArrayList<>());
             final Report report = new Report();
-
-            final long startPreCompilation = System.currentTimeMillis();
-            try {
-                Compiler.compile(description, userSelections, report, false);
-            } catch (Exception e) {
-                System.out.println("Could not pre-compile " + path.getFileName());
-                continue;
-            }
-            final long endPreCompilation = System.currentTimeMillis();
-            //System.out.println("Old compile: " + (endPreCompilation - startPreCompilation) + "ms");
-
-            //Playground.printCallTree(originalGame.description().callTree(), 0);
-
-            GameNode rootNode;
-            try {
-                rootNode = compileDescription(standardize(description.expanded()), symbolMapper);
-            } catch (Exception e) {
-                System.out.println("Could not compile description " + path.getFileName());
-                System.out.println(e.getMessage());
-                System.out.println("Skipping for now...");
-                //throw e;
-                continue;
-            }
-            final long endCompile = System.currentTimeMillis();
-            //System.out.println("My Compile: " + (endCompile - endClone) + "ms");
-
-            try {
-                rootNode.rulesNode().clearCache();
-                rootNode.compile();
-            } catch (Exception e) {
-                System.out.println("Could not recompile " + path.getFileName());
-                throw e;
-            }
-            final long endRecompile = System.currentTimeMillis();
-            //System.out.println("My Recompile: " + (endRecompile - endCompile) + "ms");
-
-            try {
-                Compiler.compile(new Description(rootNode.description()), new UserSelections(new ArrayList<>()), new Report(), false);
-            } catch (Exception e) {
-                System.out.println("Could not compile from description " + path.getFileName());
-                System.out.println(standardize(rootNode.description()));
-                System.out.println(standardize(description.expanded()));
-                throw e;
-                //continue;
-            }
-            final long endDescription = System.currentTimeMillis();
-
-            count += 1;
-            preCompilation += endPreCompilation - startPreCompilation;
-            compile += endCompile - endPreCompilation;
-            recompile += endRecompile - endCompile;
-            fromString += endDescription - endRecompile;
-
-            System.out.println("pre-compile:  " + (endPreCompilation - startPreCompilation) + "ms");
-            System.out.println("my-compile:   " + (endCompile - endPreCompilation) + "ms");
-            System.out.println("my-recompile: " + (endRecompile - endCompile) + "ms");
-            System.out.println("from-string:  " + (endDescription - endRecompile) + "ms");
-
+            Parser.expandAndParse(description, userSelections, report, true, false);
+            // TODO test
         }
-
-        System.out.println("Games:           " + count);
-        System.out.println("Pre-compilation: " + preCompilation + "ms");
-        System.out.println("Compile:         " + compile + "ms");
-        System.out.println("Recompile:       " + recompile + "ms");
-        System.out.println("From string:     " + fromString + "ms");
-
     }
 
     public static void main(String[] args) throws IOException {
