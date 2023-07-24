@@ -396,7 +396,7 @@ public class EvalGames
         }
 		// if the desired number of nearest neighbors is more than the total number of
 		// stored games, returns 0.0
-		if(k > gameConceptMatrix.size()) return 0.0;
+		if(k > gameConceptMatrix.size() || k <= 0) return 0.0;
 
         // calculate the boolean and non-boolean concepts for the game
         BitSet booleanMetrics = game.computeBooleanConcepts();
