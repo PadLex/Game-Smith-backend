@@ -42,6 +42,12 @@ public class FractionalCompiler {
             this.remainingOptions = remainingOptions;
             this.exceptions = new ArrayList<>();
         }
+
+        public CompilationState(GeneratorNode consistentGame, List<GeneratorNode> remainingOptions, List<InternalException> exceptions) {
+            this.consistentGame = consistentGame;
+            this.remainingOptions = remainingOptions;
+            this.exceptions = exceptions;
+        }
     }
 
     /*
@@ -52,11 +58,12 @@ public class FractionalCompiler {
      */
     public static GameNode compileComplete(String standardInput, SymbolMapper symbolMapper) {
         Stack<CompilationState> partialCompilation = compileFraction(standardInput, symbolMapper);
-
         if (!partialCompilation.peek().exceptions.isEmpty())
-            throw new RuntimeException(partialCompilation.peek().exceptions.get(0)); // TODO display most important errors
+            partialCompilation.peek().exceptions.forEach(Throwable::printStackTrace); // TODO display most important errors
 
-        assert partialCompilation.size() == 1;
+        if (partialCompilation.size() != 1) {
+            throw new RuntimeException("Failed to compile:"+standardInput);
+        }
 
         return partialCompilation.peek().consistentGame.root();
     }
@@ -96,11 +103,11 @@ public class FractionalCompiler {
 
             // Since we are performing a depth-first search, we can just pop the most recent game, option pair
             CompilationState state = currentStack.pop();
-            System.out.println(state.consistentGame.root().description());
+//            System.out.println(state.consistentGame.root().description());
 
             // If we haven't reached a dead end, remember to consider the next option
             if (state.remainingOptions.size() > 1)
-                currentStack.add(new CompilationState(state.consistentGame, state.remainingOptions.subList(1, state.remainingOptions.size())));
+                currentStack.add(new CompilationState(state.consistentGame, state.remainingOptions.subList(1, state.remainingOptions.size()), state.exceptions));
 
             // Loops through all options and adds them to the stack if they are consistent with the standardInput description
             try {
@@ -207,8 +214,8 @@ public class FractionalCompiler {
             // option.description accounts for the label already
             if (!(option instanceof EmptyNode) && !(option instanceof EndOfClauseNode)) {
 
-                System.out.println("trailingDescription:" + trailingDescription);
-                System.out.println("option:" + option.description());
+//                System.out.println("trailingDescription:" + trailingDescription);
+//                System.out.println("option:" + option.description());
                 if (!trailingDescription.startsWith(option.description()))
                     throw new MissmatchException("Wrong class");
 
@@ -234,7 +241,7 @@ public class FractionalCompiler {
             nodeCopy.addParameter(option);
 
             if (!standardInput.startsWith(nodeCopy.root().description())) // If slow, remove for complete games
-                throw new MissmatchException("Something Else is wromg"); // TODO CHECK
+                throw new MissmatchException("Now node does not match the input"); // TODO CHECK
 
             if (!option.isComplete())
                 return option;
