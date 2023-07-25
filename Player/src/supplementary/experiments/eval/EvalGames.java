@@ -666,15 +666,15 @@ public class EvalGames
 		}
 		
 		final String message = "Please don't touch anything until complete! \nGenerating trials: \n";
-//		try
-//		{
-//			report.getReportMessageFunctions().printMessageInAnalysisPanel(message);
-//		}
-//		catch(final Exception e)
-//		{
-//			// probably running from command line.
-//			System.out.println(message);
-//		}
+		try
+		{
+			report.getReportMessageFunctions().printMessageInAnalysisPanel(message);
+		}
+		catch(final Exception e)
+		{
+			// probably running from command line.
+			System.out.println(message);
+		}
 
 		// If using Ludii AI, need to get the algorithm used.
 		for (int p = 1; p <= game.players().count(); ++p)
@@ -805,15 +805,15 @@ public class EvalGames
 				
 				sumNumMoves += context.trial().numMoves() - context.trial().numInitialPlacementMoves();
 				
-//				try
-//				{
-//					report.getReportMessageFunctions().printMessageInAnalysisPanel(".");
-//				}
-//				catch(final Exception e)
-//				{
-//					// probably running from command line.
-//					System.out.print(".");
-//				}
+				try
+				{
+					report.getReportMessageFunctions().printMessageInAnalysisPanel(".");
+				}
+				catch(final Exception e)
+				{
+					// probably running from command line.
+					System.out.print(".");
+				}
 				
 				allStoredTrials.add(new Trial(context.trial()));
 				
@@ -836,15 +836,15 @@ public class EvalGames
 			e.printStackTrace();
 		}
 		
-//		try
-//		{
-//			report.getReportMessageFunctions().printMessageInAnalysisPanel("\nCalculating metrics: \n");
-//		}
-//		catch(final Exception e)
-//		{
-//			// probably running from command line.
-//			System.out.print("\nTrials completed.\n");
-//		}
+		try
+		{
+			report.getReportMessageFunctions().printMessageInAnalysisPanel("\nCalculating metrics: \n");
+		}
+		catch(final Exception e)
+		{
+			// probably running from command line.
+			System.out.print("\nTrials completed.\n");
+		}
 		
 		final DecimalFormat df = new DecimalFormat("#.#####");
 		final String drawPercentage = df.format(numDraws*100.0/numGames) + "%";
@@ -875,15 +875,15 @@ public class EvalGames
 			
 			final Metric metric = metricsToEvaluate.get(m);
 			
-//			try
-//			{
-//				report.getReportMessageFunctions().printMessageInAnalysisPanel(metric.name() + "\n");
-//			}
-//			catch(final Exception e)
-//			{
-//				// probably running from command line.
-//				System.out.print(metric.name() + "\n");
-//			}
+			try
+			{
+				report.getReportMessageFunctions().printMessageInAnalysisPanel(metric.name() + "\n");
+			}
+			catch(final Exception e)
+			{
+				// probably running from command line.
+				System.out.print(metric.name() + "\n");
+			}
 			
 			final Double score = metric.apply(game, evaluation, trials, randomProviderStates);			
 			if (score == null)
@@ -901,15 +901,15 @@ public class EvalGames
 		
 		analysisPanelString += "Final Score: " + df.format(finalScore) + "\n\n";
 				
-//		try
-//		{
-//			report.getReportMessageFunctions().printMessageInAnalysisPanel(analysisPanelString);
-//		}
-//		catch (final Exception e)
-//		{
-//			// Probably running from command line
-//			System.out.println(analysisPanelString);
-//		}
+		try
+		{
+			report.getReportMessageFunctions().printMessageInAnalysisPanel(analysisPanelString);
+		}
+		catch (final Exception e)
+		{
+			// Probably running from command line
+			System.out.println(analysisPanelString);
+		}
 
 		return csvOutputString.substring(0, csvOutputString.length()-1) + "\n";
 	}
