@@ -16,24 +16,19 @@ import java.util.Scanner;
  *
  * @author Alexander Padula
  */
-public class LegacyCompilerEndpoint {
+public class LegacyCompilerEndpoint extends CachedEndpoint {
     public static void main(String[] args) throws InterruptedException {
-        Scanner sc = new Scanner(System.in);
-        System.out.println("Ready");
+        new LegacyCompilerEndpoint().start();
+    }
 
-        while (sc.hasNextLine()) {
-            String input = sc.nextLine();
-            input = input.replace("\\n", "\n");
+    @Override
+    String respond() {
+        Game game = null;
+        try {
+            game = (Game) Compiler.compile(new Description(rawInput), new UserSelections(new ArrayList<>()), new Report(), false);
+        } catch (Exception ignored) {}
 
-            Game game = null;
-            try {
-                game = (Game) Compiler.compile(new Description(input), new UserSelections(new ArrayList<>()), new Report(), false);
-            } catch (Exception ignored) {}
-
-            System.out.println(game != null? 1:0);
-            System.out.println(game != null? EvalGames.defaultEvaluationFast(game):0);
-            Thread.sleep(10); // Pause to prevent the buffer from filling up.
-        }
-        sc.close();
+        return game != null? "1|" + EvalGames.defaultEvaluationFast(game) : "0|0";
+//        Thread.sleep(10); // Pause to prevent the buffer from filling up.
     }
 }
