@@ -3,73 +3,52 @@ package approaches.symbolic.api;
 import approaches.symbolic.CachedMapper;
 import approaches.symbolic.FractionalCompiler;
 import approaches.symbolic.SymbolMapper;
-import approaches.symbolic.nodes.ArrayNode;
-import approaches.symbolic.nodes.EmptyNode;
-import approaches.symbolic.nodes.EndOfClauseNode;
-import approaches.symbolic.nodes.GeneratorNode;
+import approaches.symbolic.nodes.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
-import java.util.Stack;
+import java.util.*;
 
-import static approaches.symbolic.FractionalCompiler.compileFraction;
 import static approaches.symbolic.FractionalCompiler.standardize;
 
 
 public class AutocompleteEndpoint {
 
-    static class Completion {
-        final String completion;
-        final String description;
-
-        public Completion(String completion, String description) {
-            this.completion = completion;
-            this.description = description;
-        }
-    }
-
-    public static List<Completion> autocomplete(String standardInput, SymbolMapper symbolMapper) {
+    public static Collection<GeneratorNode> autocomplete(String standardInput, SymbolMapper symbolMapper) {
         if ("(gam".startsWith(standardInput))
-            return List.of(new Completion("(game", "game.Game"));
+            return List.of(new GameNode());
 
         Stack<FractionalCompiler.CompilationState>  partialCompilation = FractionalCompiler.compileFraction(standardInput, symbolMapper);
 
-        List<Completion> completions = new ArrayList<>();
+        Map<String, GeneratorNode> completions = new HashMap<>();
 
         for (FractionalCompiler.CompilationState state: partialCompilation) {
             GeneratorNode node = state.consistentGame;
-            String trailing = standardInput.substring(node.root().description().length()).strip();
-            completions.addAll(buildCompletions(node, trailing, symbolMapper));
+            String prefix = standardInput.substring(node.root().description().length()).strip();
+            for (GeneratorNode option: compatibleOptions(node, prefix, symbolMapper)){
+                completions.put(option.symbol().path(), option);
+            }
         }
 
-        return completions;
+        return completions.values();
     }
 
     // TODO make it consider possibilities bellow the top of the stack
-    public static List<Completion> buildCompletions(GeneratorNode node, String trailing, SymbolMapper symbolMapper) {
+    public static List<GeneratorNode> compatibleOptions(GeneratorNode node, String prefix, SymbolMapper symbolMapper) {
 
-        List<Completion> completions = new ArrayList<>();
+        List<GeneratorNode> completions = new ArrayList<>();
 
         for (GeneratorNode option: node.nextPossibleParameters(symbolMapper, null, false, true)) {
             assert !(option instanceof EmptyNode);
-            if (!option.description().startsWith(trailing))
+//            System.out.println(option + " - " + prefix);
+            if (option instanceof EndOfClauseNode) {
+                if (prefix.length() > 0)
+                    continue;
+            }else if (!option.description().startsWith(prefix))
                 continue;
 
             GeneratorNode newNode = node.copyUp();
             newNode.addParameter(option);
 
-            String description = option.symbol().path();
-            String completion;
-
-            if (option instanceof EndOfClauseNode) {
-                description = "End of clause";
-                completion = option.parent() instanceof ArrayNode ? "}" : ")";
-            } else {
-                completion = option.description();
-            }
-
-            completions.add(new Completion(completion, description));
+            completions.add(newNode);
         }
 
         return completions;
@@ -84,8 +63,11 @@ public class AutocompleteEndpoint {
         while (sc.hasNextLine()) {
             String input = sc.nextLine();
             input = input.replace("\\n", "\n");
-            for (Completion completion : autocomplete(standardize(input), symbolMapper)) {
-                System.out.print(completion.completion + "|" + completion.description + "||");
+            String standardInput = standardize(input);
+            for (GeneratorNode node : autocomplete(standardInput, symbolMapper)) {
+                assert node.root().description().startsWith(standardInput);
+                String completion = node.root().description().substring(standardInput.length());
+                System.out.print(completion + "|" + node.symbol().grammarLabel() + "||");
             }
             System.out.println();
         }

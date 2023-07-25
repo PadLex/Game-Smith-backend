@@ -180,11 +180,13 @@ public class FractionalCompiler {
                 case INT, DIM, FLOAT -> {
                     Matcher match = endOfParameter.matcher(trailingDescription);
 
-                    if (!match.find())
-                        throw new MissmatchException("Can't find closing end of parameter");
+                    int end = trailingDescription.length();
+                    if (match.find())
+                        end = match.start();
+//                        throw new MissmatchException("Can't find closing end of parameter");
 
                     try {
-                        primitiveOption.setUnparsedValue(trailingDescription.substring(0, match.start()));
+                        primitiveOption.setUnparsedValue(trailingDescription.substring(0, end));
                     } catch (NumberFormatException e) {
                         throw new MissmatchException("Not a number");
                     }
