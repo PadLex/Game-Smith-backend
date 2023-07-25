@@ -283,8 +283,6 @@ public class EvalGames
 		gameRatings = new HashMap<>();
         try
         {
-			//Print working directory
-			System.out.println("Working Directory = " + System.getProperty("user.dir"));
             // what is attempted here is to load the game concepts correctly into a form that can be readily accessed and used in the recommendScore method
             FileReader fr = new FileReader("../Common/res/recs/game_concept_matrix_allconcepts_new.csv");
             BufferedReader br = new BufferedReader(fr);
