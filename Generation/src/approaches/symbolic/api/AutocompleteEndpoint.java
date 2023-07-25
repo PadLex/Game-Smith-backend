@@ -16,17 +16,15 @@ public class AutocompleteEndpoint extends CachedEndpoint {
         if ("(gam".startsWith(standardInput))
             return List.of(new GameNode());
 
-        Map<String, GeneratorNode> completions = new HashMap<>();
+        List<GeneratorNode> completions = new ArrayList<>();
 
         for (FractionalCompiler.CompilationState state: cachedCompilation) {
             GeneratorNode node = state.consistentGame;
             String prefix = standardInput.substring(node.root().description().length()).strip();
-            for (GeneratorNode option: compatibleOptions(node, prefix)){
-                completions.put(option.symbol().path(), option);
-            }
+            completions.addAll(compatibleOptions(node, prefix));
         }
 
-        return completions.values();
+        return completions;
     }
 
     // TODO make it consider possibilities bellow the top of the stack
@@ -56,10 +54,14 @@ public class AutocompleteEndpoint extends CachedEndpoint {
     String respond() {
         String standardInput = standardize(rawInput);
         StringBuilder sb = new StringBuilder();
+        HashSet<String> completions = new HashSet<>();
         for (GeneratorNode node : autocomplete(standardInput)) {
             assert node.root().description().startsWith(standardInput);
             String completion = node.root().description().substring(standardInput.length());
-            sb.append(completion).append("|").append(node.symbol().grammarLabel()).append("||");
+            if (!completions.contains(completion)) {
+                completions.add(completion);
+                sb.append(completion).append("|").append(node.symbol().grammarLabel()).append("||");
+            }
         }
         if (sb.length() > 2)
             sb.delete(sb.length() - 2, sb.length());

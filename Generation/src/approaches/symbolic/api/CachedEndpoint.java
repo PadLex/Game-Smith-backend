@@ -39,13 +39,13 @@ public abstract class CachedEndpoint {
         System.out.println("Ready");
 
         while (sc.hasNextLine()) {
-            long start = System.currentTimeMillis();
+//            long start = System.currentTimeMillis();
             // Input
             updateCache(sc.nextLine().replace("\\n", "\n"));
             // Output
             System.out.println(respond().replace("\n", "\\n"));
-            long end = System.currentTimeMillis();
-            System.out.println(end - start + "ms");
+//            long end = System.currentTimeMillis();
+//            System.out.println(end - start + "ms");
         }
         sc.close();
     }
