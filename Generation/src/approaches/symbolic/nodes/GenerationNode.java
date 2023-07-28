@@ -1,7 +1,7 @@
 package approaches.symbolic.nodes;
 
-import approaches.symbolic.SymbolMapper;
-import approaches.symbolic.SymbolMapper.MappedSymbol;
+import approaches.symbolic.SymbolMap;
+import approaches.symbolic.SymbolMap.MappedSymbol;
 import main.StringRoutines;
 
 
@@ -13,15 +13,15 @@ import java.util.List;
  * Represents a node in the generator tree. Each node tracks its symbol, parent, and parameters. Each node can tell you
  * what parameters it can take next, and can compile itself by instantiating the symbol's ludeme class.
  */
-public abstract class GeneratorNode {
+public abstract class GenerationNode {
     final MappedSymbol symbol;
-    final List<GeneratorNode> parameterSet = new ArrayList<>();
-    GeneratorNode parent;
+    final List<GenerationNode> parameterSet = new ArrayList<>();
+    GenerationNode parent;
     Object compilerCache = null;
     String descriptionCache = null;
     boolean complete;
 
-    GeneratorNode(MappedSymbol symbol, GeneratorNode parent) {
+    GenerationNode(MappedSymbol symbol, GenerationNode parent) {
         assert symbol != null;
         this.symbol = symbol;
         this.parent = parent;
@@ -33,7 +33,7 @@ public abstract class GeneratorNode {
      * @param parent The parent of the node.
      * @return A new node of the appropriate type for the symbol.
      */
-    public static GeneratorNode fromSymbol(MappedSymbol symbol, GeneratorNode parent) {
+    public static GenerationNode fromSymbol(MappedSymbol symbol, GenerationNode parent) {
         if (symbol.nesting() > 0) {
             return new ArrayNode(symbol, parent);
         }
@@ -73,17 +73,17 @@ public abstract class GeneratorNode {
 
     abstract Object instantiate();
 
-    public abstract List<GeneratorNode> nextPossibleParameters(SymbolMapper symbolMapper);
+    public abstract List<GenerationNode> nextPossibleParameters(SymbolMap symbolMap);
 
-    public List<GeneratorNode> nextPossibleParameters(SymbolMapper symbolMapper, List<GeneratorNode> partialArguments, boolean includeAliases, boolean expandEmpty) {
-        List<GeneratorNode> options;
+    public List<GenerationNode> nextPossibleParameters(SymbolMap symbolMap, List<GenerationNode> partialArguments, boolean includeAliases, boolean expandEmpty) {
+        List<GenerationNode> options;
 
         if (partialArguments == null || partialArguments.isEmpty()) {
-            options = nextPossibleParameters(symbolMapper);
+            options = nextPossibleParameters(symbolMap);
         } else {
             int i = parameterSet.size();
             parameterSet.addAll(partialArguments);
-            options = nextPossibleParameters(symbolMapper);
+            options = nextPossibleParameters(symbolMap);
             parameterSet.subList(i, parameterSet.size()).clear();
         }
 
@@ -95,9 +95,9 @@ public abstract class GeneratorNode {
             EmptyNode empty = options.stream().filter(n -> n instanceof EmptyNode).map(n -> (EmptyNode) n).findFirst().orElse(null);
             if (empty != null) {
                 options.remove(empty);
-                List<GeneratorNode> nextPartialArguments = partialArguments==null? new ArrayList<>() : new ArrayList<>(partialArguments);
+                List<GenerationNode> nextPartialArguments = partialArguments==null? new ArrayList<>() : new ArrayList<>(partialArguments);
                 nextPartialArguments.add(empty);
-                options.addAll(nextPossibleParameters(symbolMapper, nextPartialArguments, includeAliases, expandEmpty));
+                options.addAll(nextPossibleParameters(symbolMap, nextPartialArguments, includeAliases, expandEmpty));
             }
         }
 
@@ -106,14 +106,14 @@ public abstract class GeneratorNode {
             options.addAll(options.stream().filter(n -> n.symbol().hasAlias()).map(n -> {
                 MappedSymbol noAlias = new MappedSymbol(n.symbol());
                 noAlias.setToken(StringRoutines.toDromedaryCase(noAlias.name()));
-                return GeneratorNode.fromSymbol(noAlias, n.parent());
+                return GenerationNode.fromSymbol(noAlias, n.parent());
             }).toList());
         }
 
         return options;
     }
 
-    public void addParameter(GeneratorNode param) {
+    public void addParameter(GenerationNode param) {
         assert param != null;
         param.parent = this;
 
@@ -150,27 +150,27 @@ public abstract class GeneratorNode {
     }
 
     public boolean isRecursivelyComplete() {
-        return isComplete() && parameterSet.stream().allMatch(GeneratorNode::isRecursivelyComplete);
+        return isComplete() && parameterSet.stream().allMatch(GenerationNode::isRecursivelyComplete);
     }
 
     public MappedSymbol symbol() {
         return symbol;
     }
 
-    public GeneratorNode parent() {
+    public GenerationNode parent() {
         return parent;
     }
 
-    public void setParent(GeneratorNode parent) {
+    public void setParent(GenerationNode parent) {
         this.parent = parent;
     }
 
-    public List<GeneratorNode> parameterSet() {
+    public List<GenerationNode> parameterSet() {
         return Collections.unmodifiableList(parameterSet);
     }
 
-    public GeneratorNode find(String token) {
-        for (GeneratorNode node : parameterSet) {
+    public GenerationNode find(String token) {
+        for (GenerationNode node : parameterSet) {
             if (node.symbol.token().equals(token))
                 return node;
         }
@@ -182,9 +182,9 @@ public abstract class GeneratorNode {
      * Copies the node and all of its grandchildren down to the leaves.
      * @return A copy of the node and all of its grandchildren.
      */
-    public GeneratorNode copyDown() {
-        GeneratorNode clone = fromSymbol(symbol, parent);
-        clone.parameterSet.addAll(parameterSet.stream().map(GeneratorNode::copyDown).toList());
+    public GenerationNode copyDown() {
+        GenerationNode clone = fromSymbol(symbol, parent);
+        clone.parameterSet.addAll(parameterSet.stream().map(GenerationNode::copyDown).toList());
         clone.complete = complete;
         clone.compilerCache = compilerCache;
         return clone;
@@ -194,8 +194,8 @@ public abstract class GeneratorNode {
      * Copies the node and all of its ancestors up to the root node.
      * @return A copy of the node and all of its ancestors.
      */
-    public GeneratorNode copyUp() {
-        GeneratorNode clone = fromSymbol(symbol, parent);
+    public GenerationNode copyUp() {
+        GenerationNode clone = fromSymbol(symbol, parent);
         clone.parameterSet.addAll(parameterSet);
         clone.complete = complete;
         clone.compilerCache = compilerCache;
@@ -226,15 +226,15 @@ public abstract class GeneratorNode {
     }
 
     public GameNode root() {
-        GeneratorNode node = this;
+        GenerationNode node = this;
         while (node.parent != null)
             node = node.parent;
 
         return (GameNode) node;
     }
 
-    public GeneratorNode get(List<Integer> indexes) {
-        GeneratorNode node = this;
+    public GenerationNode get(List<Integer> indexes) {
+        GenerationNode node = this;
         for (int i : indexes) {
             node = node.parameterSet.get(i);
         }

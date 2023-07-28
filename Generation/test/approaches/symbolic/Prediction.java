@@ -7,9 +7,9 @@ import java.util.List;
 
 public class Prediction {
     public static void main(String[] args) {
-        SymbolMapper symbolMapper = new SymbolMapper();
+        SymbolMap symbolMap = new SymbolMap();
         Symbol symbol = Grammar.grammar().findSymbolByPath("game.functions.region.sites.Sites");
         List<Symbol> arguments = List.of();
-        System.out.println(symbolMapper.nextPossibilities(symbol, arguments).stream().map(s -> s.path() + "|" + s.nesting()).toList());
+        System.out.println(symbolMap.nextPossibilities(symbol, arguments).stream().map(s -> s.path() + "|" + s.nesting()).toList());
     }
 }

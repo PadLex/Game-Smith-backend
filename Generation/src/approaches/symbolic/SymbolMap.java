@@ -18,7 +18,7 @@ import java.util.stream.Stream;
  *
  * @author Alexander Padula
  */
-public class SymbolMapper {
+public class SymbolMap {
     public static final MappedSymbol emptySymbol = new EmptySymbol();
     public static final MappedSymbol endOfClauseSymbol = new EndOfClauseSymbol();
 
@@ -40,7 +40,7 @@ public class SymbolMapper {
     private final Set<String> paths = new HashSet<>();
     private final Map<String, List<Symbol>> compatibilityMap = new HashMap<>();
 
-    public SymbolMapper() {
+    public SymbolMap() {
         this(Grammar.grammar().symbols().stream().filter(s ->
                 (s.usedInGrammar()  // Includes most symbols, including types
                         || !s.usedInMetadata())  // Includes even more types and many constants
@@ -49,7 +49,7 @@ public class SymbolMapper {
         ).toList());
     }
 
-    public SymbolMapper(Collection<Symbol> symbols) {
+    public SymbolMap(Collection<Symbol> symbols) {
         this.symbols.addAll(symbols);
         this.paths.addAll(symbols.stream().map(Symbol::path).toList());
 
@@ -322,7 +322,7 @@ public class SymbolMapper {
      */
     static class EmptySymbol extends MappedSymbol {
         private EmptySymbol() {
-            super(null, "mapper.unused", null, SymbolMapper.class, null);
+            super(null, "mapper.unused", null, SymbolMap.class, null);
         }
 
         @Override
@@ -341,7 +341,7 @@ public class SymbolMapper {
      */
     static class EndOfClauseSymbol extends MappedSymbol {
         private EndOfClauseSymbol() {
-            super(null, "mapper.endOfClause", null, SymbolMapper.class, null);
+            super(null, "mapper.endOfClause", null, SymbolMap.class, null);
         }
 
         @Override

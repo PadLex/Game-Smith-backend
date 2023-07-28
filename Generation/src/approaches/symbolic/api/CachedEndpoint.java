@@ -1,9 +1,8 @@
 package approaches.symbolic.api;
 
-import approaches.symbolic.CachedMapper;
+import approaches.symbolic.CachedMap;
 import approaches.symbolic.FractionalCompiler;
-import approaches.symbolic.SymbolMapper;
-import approaches.symbolic.nodes.GeneratorNode;
+import approaches.symbolic.SymbolMap;
 
 import java.util.Scanner;
 import java.util.Stack;
@@ -11,7 +10,7 @@ import java.util.Stack;
 import static approaches.symbolic.FractionalCompiler.standardize;
 
 public abstract class CachedEndpoint {
-    SymbolMapper symbolMapper = new CachedMapper();
+    SymbolMap symbolMap = new CachedMap();
     Stack<FractionalCompiler.CompilationState> cachedCompilation;
     String rawInput;
     abstract String respond();
@@ -20,14 +19,14 @@ public abstract class CachedEndpoint {
         String standardInput = standardize(input);
 
         if (cachedCompilation == null || cachedCompilation.size() == 0) {
-            cachedCompilation = FractionalCompiler.compileFraction(standardInput, symbolMapper);
+            cachedCompilation = FractionalCompiler.compileFraction(standardInput, symbolMap);
         } else {
             String cachedDescription = cachedCompilation.peek().consistentGame.root().description();
             if (!standardInput.equals(cachedDescription)) {
                 if (standardInput.startsWith(cachedDescription))
-                    cachedCompilation = FractionalCompiler.compileFraction(standardInput, cachedCompilation, symbolMapper);
+                    cachedCompilation = FractionalCompiler.compileFraction(standardInput, cachedCompilation, symbolMap);
                 else
-                    cachedCompilation = FractionalCompiler.compileFraction(standardInput, symbolMapper);
+                    cachedCompilation = FractionalCompiler.compileFraction(standardInput, symbolMap);
             }
         }
 

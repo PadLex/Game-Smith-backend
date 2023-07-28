@@ -1,16 +1,15 @@
 package approaches.symbolic.nodes;
 
-import approaches.symbolic.SymbolMapper;
-import main.grammar.Symbol;
+import approaches.symbolic.SymbolMap;
 
 import java.util.List;
 
 /**
  * Node representing an unused argument. This is a terminal node.
  */
-public class EmptyNode extends GeneratorNode {
-    public EmptyNode(GeneratorNode parent) {
-        super(SymbolMapper.emptySymbol, parent);
+public class EmptyNode extends GenerationNode {
+    public EmptyNode(GenerationNode parent) {
+        super(SymbolMap.emptySymbol, parent);
     }
 
     @Override
@@ -19,7 +18,7 @@ public class EmptyNode extends GeneratorNode {
     }
 
     @Override
-    public List<GeneratorNode> nextPossibleParameters(SymbolMapper symbolMapper) {
+    public List<GenerationNode> nextPossibleParameters(SymbolMap symbolMap) {
         return List.of();
     }
 

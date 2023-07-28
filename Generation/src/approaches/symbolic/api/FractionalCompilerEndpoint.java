@@ -16,12 +16,13 @@ import static approaches.symbolic.FractionalCompiler.*;
 public class FractionalCompilerEndpoint extends CachedEndpoint {
 
     public static void main(String[] args) {
+        EvalGames.debug = false;
         new FractionalCompilerEndpoint().start();
     }
 
     @Override
     String respond() {
-        Stack<CompilationState> partialCompilation = compileFraction(standardize(rawInput), symbolMapper);
+        Stack<CompilationState> partialCompilation = compileFraction(standardize(rawInput), symbolMap);
         GameNode gameNode = partialCompilation.peek().consistentGame.root();
         String compilingPortion = gameNode.description();
         boolean compiles = partialCompilation.peek().exceptions.isEmpty();

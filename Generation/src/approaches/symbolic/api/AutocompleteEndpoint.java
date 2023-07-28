@@ -1,8 +1,6 @@
 package approaches.symbolic.api;
 
-import approaches.symbolic.CachedMapper;
 import approaches.symbolic.FractionalCompiler;
-import approaches.symbolic.SymbolMapper;
 import approaches.symbolic.nodes.*;
 
 import java.util.*;
@@ -12,14 +10,14 @@ import static approaches.symbolic.FractionalCompiler.standardize;
 
 public class AutocompleteEndpoint extends CachedEndpoint {
 
-    public Collection<GeneratorNode> autocomplete(String standardInput) {
+    public Collection<GenerationNode> autocomplete(String standardInput) {
         if ("(gam".startsWith(standardInput))
             return List.of(new GameNode());
 
-        List<GeneratorNode> completions = new ArrayList<>();
+        List<GenerationNode> completions = new ArrayList<>();
 
         for (FractionalCompiler.CompilationState state: cachedCompilation) {
-            GeneratorNode node = state.consistentGame;
+            GenerationNode node = state.consistentGame;
             String prefix = standardInput.substring(node.root().description().length()).strip();
             completions.addAll(compatibleOptions(node, prefix));
         }
@@ -28,11 +26,11 @@ public class AutocompleteEndpoint extends CachedEndpoint {
     }
 
     // TODO make it consider possibilities bellow the top of the stack
-    public List<GeneratorNode> compatibleOptions(GeneratorNode node, String prefix) {
+    public List<GenerationNode> compatibleOptions(GenerationNode node, String prefix) {
 
-        List<GeneratorNode> completions = new ArrayList<>();
+        List<GenerationNode> completions = new ArrayList<>();
 
-        for (GeneratorNode option: node.nextPossibleParameters(symbolMapper, null, false, true)) {
+        for (GenerationNode option: node.nextPossibleParameters(symbolMap, null, false, true)) {
             assert !(option instanceof EmptyNode);
 //            System.out.println(option + " - " + prefix);
             if (option instanceof EndOfClauseNode) {
@@ -41,7 +39,7 @@ public class AutocompleteEndpoint extends CachedEndpoint {
             }else if (!option.description().startsWith(prefix))
                 continue;
 
-            GeneratorNode newNode = node.copyUp();
+            GenerationNode newNode = node.copyUp();
             newNode.addParameter(option);
 
             completions.add(newNode);
@@ -55,7 +53,7 @@ public class AutocompleteEndpoint extends CachedEndpoint {
         String standardInput = standardize(rawInput);
         StringBuilder sb = new StringBuilder();
         HashSet<String> completions = new HashSet<>();
-        for (GeneratorNode node : autocomplete(standardInput)) {
+        for (GenerationNode node : autocomplete(standardInput)) {
             assert node.root().description().startsWith(standardInput);
             String completion = node.root().description().substring(standardInput.length());
             if (!completions.contains(completion)) {
