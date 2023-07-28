@@ -55,7 +55,7 @@ public class ItemMSMF extends MF {
                     idx_smallest = j;
                 }
             }
-            Pair p = new Pair(smallest, idx_smallest);
+            Pair p = new Pair(1f-smallest, idx_smallest);
             list_items.add(p);
         }
         return list_items;
