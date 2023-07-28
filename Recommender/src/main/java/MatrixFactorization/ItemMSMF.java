@@ -67,7 +67,7 @@ public class ItemMSMF extends MF {
     public void replace_latent_vectors(float [][] q_matrix_used){   // True if lowest u, q matrices used, False if final u, q matrices used
         for (int row_idx=0; row_idx<to_be_replaced.length; row_idx++){
             int item = to_be_replaced[row_idx];
-            int n = super.get_k();
+            int n = 5;
             ArrayList <Pair> k_similar_items = return_k_similar_elements(n, item);
             float [] average_vector = new float [super.get_k()];
             float sum = 0;
