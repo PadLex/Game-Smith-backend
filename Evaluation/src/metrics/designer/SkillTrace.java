@@ -49,6 +49,8 @@ public class SkillTrace extends Metric
 	private boolean addToDatabaseFile = false;
 	private String combinedResultsOutputPath = "SkillTraceResults.csv";
 
+	public boolean debug = true;
+
 	//-------------------------------------------------------------------------
 
 	/**
@@ -95,7 +97,7 @@ public class SkillTrace extends Metric
 		game.start(context);
 		final int bf = game.moves(context).count();
 		
-		System.out.println(numTrialsPerMatch + " trials per level, time limit " + hardTimeLimit + "s, BF=" + bf + ".");
+		if (debug) System.out.println(numTrialsPerMatch + " trials per level, time limit " + hardTimeLimit + "s, BF=" + bf + ".");
 		outputString +=    numTrialsPerMatch + " trials per level, time limit " + hardTimeLimit + "s, BF=" + bf + ".\n";
 		
 		int weakIterationValue = 2;
@@ -141,7 +143,7 @@ public class SkillTrace extends Metric
 			// If we didn't finish all trials in time, then ignore the match results
 			if (System.currentTimeMillis() > (startTime + hardTimeLimit*1000))
 			{
-				System.out.println("Aborting after " + String.valueOf(matchCount) + " levels.");
+				if (debug) System.out.println("Aborting after " + String.valueOf(matchCount) + " levels.");
 				outputString += "Aborting after " + String.valueOf(matchCount) + " levels.\n";
 				break;
 			}
@@ -152,7 +154,7 @@ public class SkillTrace extends Metric
 			weakIterationValue *= 2;
 			
 			// Print match results in console
-			System.out.println("Level " + (matchCount+1) + ", strong AI result: " + strongAIAvgResult);
+			if (debug) System.out.println("Level " + (matchCount+1) + ", strong AI result: " + strongAIAvgResult);
 			outputString +=    "Level " + (matchCount+1) + ", strong AI result: " + strongAIAvgResult + "\n";
 		}
 		
@@ -171,7 +173,7 @@ public class SkillTrace extends Metric
 		
 		final double secs = (System.currentTimeMillis() - startTime) / 1000.0;
 		
-		System.out.println(String.format("Skill trace %.3f in %.3fs (slope error %.3f, intercept error %.3f).", skillTrace, secs, linearRegression.slopeStdErr(), linearRegression.interceptStdErr()));
+		if (debug) System.out.println(String.format("Skill trace %.3f in %.3fs (slope error %.3f, intercept error %.3f).", skillTrace, secs, linearRegression.slopeStdErr(), linearRegression.interceptStdErr()));
 		outputString +=    String.format("Skill trace %.3f in %.3fs (slope error %.3f, intercept error %.3f).", skillTrace, secs, linearRegression.slopeStdErr(), linearRegression.interceptStdErr());
 		
 		// Store outputString in a text file if specified.
