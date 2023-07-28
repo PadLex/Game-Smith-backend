@@ -11,20 +11,20 @@ import java.awt.event.WindowEvent;
 import javax.swing.*;
 
 public class RecommenderStarter extends JFrame implements ActionListener {
-    String logo_filepath = "Recommender/resources/LUDII_Icon_transparent.png";
+    String logo_filepath = "resources/LUDII_Icon_transparent.png";
     User_Rec curUser = new User_Rec();
     JRadioButton [] options = new JRadioButton[5];
     int current = 0;
-    JLabel zero_label = new JLabel("0");
+    JLabel one_label = new JLabel("1");
     ButtonGroup bg = new ButtonGroup();
-    JLabel four_label = new JLabel("4");
+    JLabel five_label = new JLabel("5");
     JButton next_button = new JButton("Next");
-    JLabel question = new JLabel("From 0 to 4, how much do you enjoy games playing with multiple types of pieces?");
-    String [] questionStrings = new String [] {"From 0 to 4, how much do you enjoy games playing with multiple types of pieces?", "From 0 to 4, how much do you like Chess?",
-    "From 0 to 4, how much do you enjoy games playing with one type of piece?", "From 0 to 4, how much do you like Checkers/Draughts?", "From 0 to 4, how much do you enjoy games with the Mancala board?",
-    "From 0 to 4, how much do you enjoy Puzzles?", "From 0 to 4, how much do you like Sudoku?", "From 0 to 4, how much do you enjoy games with an elements of chance?",
-    "From 0 to 4, how much do enjoy games with hidden elements?", "From 0 to 4, how much do you enjoy Backgammon?", "From 0 to 4, how much do you enjoy games with two or more players?",
-            "From 0 to 4, in games, how much do you enjoy cooperating with others?"};
+    JLabel question = new JLabel("From 1 to 5, how much do you enjoy games playing with multiple types of pieces?");
+    String [] questionStrings = new String [] {"From 1 to 5, how much do you enjoy games playing with multiple types of pieces?", "From 1 to 5, how much do you like Chess?",
+            "From 1 to 5, how much do you enjoy games playing with one type of piece?", "From 1 to 5, how much do you like Checkers/Draughts?", "From 1 to 5, how much do you enjoy games with the Mancala board?",
+            "From 1 to 5, how much do you enjoy Puzzles?", "From 1 to 5, how much do you like Sudoku?", "From 1 to 5, how much do you enjoy games with an elements of chance?",
+            "From 1 to 5, how much do enjoy games with hidden elements?", "From 1 to 5, how much do you enjoy Backgammon?", "From 1 to 5, how much do you enjoy games with two or more players?",
+            "From 1 to 5, in games, how much do you enjoy cooperating with others?"};
     public RecommenderStarter(){
         ImageIcon logo = new ImageIcon(logo_filepath);
         setIconImage(logo.getImage());
@@ -46,16 +46,16 @@ public class RecommenderStarter extends JFrame implements ActionListener {
             idx++;
         }
         options[2].setSelected(true);
-        zero_label.setBounds(260, 170, 15, 15);
-        four_label.setBounds(405, 170, 15, 15);
+        one_label.setBounds(260, 170, 15, 15);
+        five_label.setBounds(405, 170, 15, 15);
         next_button.setBounds(270, 200, 120, 40);
         next_button.addActionListener(this);
         next_button.setBackground(Color.CYAN);
         next_button.setForeground(Color.darkGray);
         next_button.setFont(new Font("Arial Black", Font.BOLD, 15));
         add(next_button);
-        add(zero_label);
-        add(four_label);
+        add(one_label);
+        add(five_label);
         setSize(650, 300);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -81,8 +81,9 @@ public class RecommenderStarter extends JFrame implements ActionListener {
                         idx = i;
                     }
                 }
+                idx++;
                 float change;
-                idx -= 2;
+                idx -= 3;
                 if (idx > 0){
                     float max = (10f-average_multiple_pieces_rating)/2f;
                     change = max * idx/2f;
@@ -103,8 +104,9 @@ public class RecommenderStarter extends JFrame implements ActionListener {
                         idx = i;
                     }
                 }
-
-                curUser.set_chess_rating(idx/4f * 10f);
+                idx++;
+                idx -= 3;
+                curUser.set_chess_rating(idx*2f);
                 current++;
                 options[2].setSelected(true);
                 break;
@@ -117,7 +119,8 @@ public class RecommenderStarter extends JFrame implements ActionListener {
                     }
                 }
                 final float average_one_piece_rating = 6.110978055755186f;
-                idx -= 2;
+                idx++;
+                idx -= 3;
                 if (idx > 0){
                     float max = (10f-average_one_piece_rating)/2f;
                     change = max * idx/2f;
@@ -151,7 +154,8 @@ public class RecommenderStarter extends JFrame implements ActionListener {
                     }
                 }
                 final float average_mancala_rating = 5.994619039587398f;
-                idx -= 2;
+                idx++;
+                idx -= 3;
                 if (idx > 0){
                     float max = (10f-average_mancala_rating)/2f;
                     change = max * idx/2f;
@@ -173,7 +177,8 @@ public class RecommenderStarter extends JFrame implements ActionListener {
                     }
                 }
                 final float average_puzzle_rating = 6.217805628742515f;
-                idx -= 2;
+                idx++;
+                idx -= 3;
                 if (idx > 0){
                     float max = (10f-average_puzzle_rating)/2f;
                     change = max * idx/2f;
@@ -207,7 +212,8 @@ public class RecommenderStarter extends JFrame implements ActionListener {
                     }
                 }
                 final float average_chance_rating = 6.466419787010439f;
-                idx -= 2;
+                idx++;
+                idx -= 3;
                 if (idx > 0){
                     float max = (10f-average_chance_rating)/2f;
                     change = max * idx/2f;
@@ -216,7 +222,7 @@ public class RecommenderStarter extends JFrame implements ActionListener {
                     float min = (average_chance_rating-0f)/2f;
                     change = min * idx/2f;
                 }
-                curUser.set_chance_ratings(average_chance_rating + change);
+                curUser.set_mancala_ratings(average_chance_rating + change);
                 current++;
                 options[2].setSelected(true);
                 break;
@@ -229,8 +235,8 @@ public class RecommenderStarter extends JFrame implements ActionListener {
                     }
                 }
                 final float average_hidden_element_rating = 5.7176979303231725f;
-                change = 0;
-                idx -= 2;
+                idx++;
+                idx -= 3;
                 if (idx > 0){
                     float max = (10f-average_hidden_element_rating)/2f;
                     change = max * idx/2f;
@@ -264,7 +270,8 @@ public class RecommenderStarter extends JFrame implements ActionListener {
                     }
                 }
                 final float average_multiplayer_rating = 5.7176979303231725f;
-                idx -= 2;
+                idx++;
+                idx -= 3;
                 if (idx > 0){
                     float max = (10f-average_multiplayer_rating)/2f;
                     change = max * idx/2f;
@@ -286,7 +293,8 @@ public class RecommenderStarter extends JFrame implements ActionListener {
                     }
                 }
                 final float average_coordination_rating = 4.5411965294793255f;
-                idx -= 2;
+                idx++;
+                idx -= 3;
                 if (idx > 0){
                     float max = (10f-average_coordination_rating)/2f;
                     change = max * idx/2f;
