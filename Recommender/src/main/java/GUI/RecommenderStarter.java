@@ -20,10 +20,10 @@ public class RecommenderStarter extends JFrame implements ActionListener {
     JLabel five_label = new JLabel("5");
     JButton next_button = new JButton("Next");
     JLabel question = new JLabel("From 1 to 5, how much do you enjoy games playing with multiple types of pieces?");
-    String [] questionStrings = new String [] {"From 1 to 5, how much do you enjoy games playing with multiple types of pieces?", "From 1 to 5, how much do you like Chess?",
-            "From 1 to 5, how much do you enjoy games playing with one type of piece?", "From 1 to 5, how much do you like Checkers/Draughts?", "From 1 to 5, how much do you enjoy games with the Mancala board?",
-            "From 1 to 5, how much do you enjoy Puzzles?", "From 1 to 5, how much do you like Sudoku?", "From 1 to 5, how much do you enjoy games with an elements of chance?",
-            "From 1 to 5, how much do enjoy games with hidden elements?", "From 1 to 5, how much do you enjoy Backgammon?", "From 1 to 5, how much do you enjoy games with two or more players?",
+    String [] questionStrings = new String [] {"From 1 to 5, how much do you enjoy games playing with multiple types of pieces?", "From 1 to 5, how much do you like Chess? (rate 3 if you've never played it)",
+            "From 1 to 5, how much do you enjoy games playing with one type of piece?", "From 1 to 5, how much do you like Checkers/Draughts? (rate 3 if you've never played it)", "From 1 to 5, how much do you enjoy games with the Mancala board?",
+            "From 1 to 5, how much do you enjoy Puzzles?", "From 1 to 5, how much do you like Sudoku? (rate 3 if you've never played it)", "From 1 to 5, how much do you enjoy games with an elements of chance?",
+            "From 1 to 5, how much do enjoy games with hidden elements?", "From 1 to 5, how much do you enjoy Backgammon? (rate 3 if you've never played it)", "From 1 to 5, how much do you enjoy games with two or more players?",
             "From 1 to 5, in games, how much do you enjoy cooperating with others?"};
     public RecommenderStarter(){
         ImageIcon logo = new ImageIcon(logo_filepath);
