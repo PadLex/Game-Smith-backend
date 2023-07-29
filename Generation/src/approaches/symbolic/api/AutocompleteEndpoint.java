@@ -32,17 +32,17 @@ public class AutocompleteEndpoint extends CachedEndpoint {
 
         for (GenerationNode option: node.nextPossibleParameters(symbolMap, null, false, true)) {
             assert !(option instanceof EmptyNode);
-//            System.out.println(option + " - " + prefix);
+
             if (option instanceof EndOfClauseNode) {
                 if (prefix.length() > 0)
                     continue;
-            }else if (!option.description().startsWith(prefix))
+            }else if (!(option.description().startsWith(prefix) || option instanceof PrimitiveNode))
                 continue;
 
             GenerationNode newNode = node.copyUp();
             newNode.addParameter(option);
 
-            completions.add(newNode);
+            completions.add(option);
         }
 
         return completions;
@@ -54,8 +54,18 @@ public class AutocompleteEndpoint extends CachedEndpoint {
         StringBuilder sb = new StringBuilder();
         HashSet<String> completions = new HashSet<>();
         for (GenerationNode node : autocomplete(standardInput)) {
-            assert node.root().description().startsWith(standardInput);
-            String completion = node.root().description().substring(standardInput.length());
+            //assert node.root().description().startsWith(standardInput);
+            String completion;
+
+            if (node instanceof PrimitiveNode) {
+                completion = node.description();
+            }
+            else {
+                completion = node.root().description();
+                if (completion.length() < standardInput.length()) continue;
+                completion = completion.substring(standardInput.length());
+            }
+
             if (!completions.contains(completion)) {
                 completions.add(completion);
                 sb.append(completion).append("|").append(node.symbol().grammarLabel()).append("||");

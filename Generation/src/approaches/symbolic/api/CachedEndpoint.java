@@ -18,17 +18,20 @@ public abstract class CachedEndpoint {
     void updateCache(String input) {
         String standardInput = standardize(input);
 
-        if (cachedCompilation == null || cachedCompilation.size() == 0) {
-            cachedCompilation = FractionalCompiler.compileFraction(standardInput, symbolMap);
-        } else {
-            String cachedDescription = cachedCompilation.peek().consistentGame.root().description();
-            if (!standardInput.equals(cachedDescription)) {
-                if (standardInput.startsWith(cachedDescription))
-                    cachedCompilation = FractionalCompiler.compileFraction(standardInput, cachedCompilation, symbolMap);
-                else
-                    cachedCompilation = FractionalCompiler.compileFraction(standardInput, symbolMap);
-            }
-        }
+//        if (cachedCompilation == null || cachedCompilation.size() == 0) {
+//            cachedCompilation = FractionalCompiler.compileFraction(standardInput, symbolMap);
+//        } else {
+//            String cachedDescription = cachedCompilation.peek().consistentGame.root().description();
+//            if (!standardInput.equals(cachedDescription)) {
+//                if (standardInput.startsWith(cachedDescription))
+//                    cachedCompilation = FractionalCompiler.compileFraction(standardInput, cachedCompilation, symbolMap);
+//                else
+//                    cachedCompilation = FractionalCompiler.compileFraction(standardInput, symbolMap);
+//            }
+//        }
+
+        cachedCompilation = FractionalCompiler.compileFraction(standardInput, symbolMap);
+
 
         rawInput = input;
     }

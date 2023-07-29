@@ -232,7 +232,7 @@ public class FractionalCompiler {
 
             }
 
-            if (option instanceof EndOfClauseNode) {
+            if (option instanceof EndOfClauseNode && !trailingDescription.isEmpty()) {
                 char currentChar = trailingDescription.charAt(0);
                 if (currentChar != ')' && currentChar != '}')
                     throw new MissmatchException("Not a closing bracket"); // TODO I could probably handle this with the trailingDescription
@@ -275,7 +275,6 @@ public class FractionalCompiler {
      * @return The standardized description
      */
     public static String standardize(String str) {
-        str = str.strip();
         str = str.replaceAll("\\s+", " ");
         str = str.replace("( ", "(");
         str = str.replace(" )", ")");

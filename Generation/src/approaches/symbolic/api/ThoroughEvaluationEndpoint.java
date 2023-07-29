@@ -22,6 +22,6 @@ public class ThoroughEvaluationEndpoint extends CachedEndpoint {
             return "";
 
         GameNode gameNode = partialCompilation.peek().consistentGame.root();
-        return String.valueOf(EvalGames.defaultEvaluationSlow(gameNode.compile())).substring(0, 5);
+        return String.valueOf(EvalGames.defaultEvaluationSlow(gameNode.compile()));
     }
 }
