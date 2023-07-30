@@ -26,7 +26,7 @@ public class FractionalCompilerEndpoint extends CachedEndpoint {
         GameNode gameNode = partialCompilation.peek().consistentGame.root();
         String compilingPortion = gameNode.description();
         boolean compiles = partialCompilation.peek().exceptions.isEmpty();
-        return (compiles ? "1|" + EvalGames.defaultEvaluationFast(gameNode.compile()) : "0|0") +
+        return (compiles ? ("1|" + EvalGames.defaultEvaluationFast(gameNode.compile())).replace('.', 'k') : "0|0") +
                 "|" + destandardize(rawInput, compilingPortion);
     }
 }

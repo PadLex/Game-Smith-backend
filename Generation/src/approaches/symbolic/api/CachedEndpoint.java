@@ -4,6 +4,9 @@ import approaches.symbolic.CachedMap;
 import approaches.symbolic.FractionalCompiler;
 import approaches.symbolic.SymbolMap;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Scanner;
 import java.util.Stack;
 
@@ -16,6 +19,11 @@ public abstract class CachedEndpoint {
     abstract String respond();
 
     void updateCache(String input) {
+//        try (BufferedWriter writer = new BufferedWriter(new FileWriter("logggg.txt", true))) {
+//            writer.write("Input:\n" + input);
+//            writer.newLine(); // Add a newline after each log message (optional)
+//        } catch (IOException e) {}
+
         String standardInput = standardize(input);
 
 //        if (cachedCompilation == null || cachedCompilation.size() == 0) {
@@ -44,6 +52,20 @@ public abstract class CachedEndpoint {
 //            long start = System.currentTimeMillis();
             // Input
             updateCache(sc.nextLine().replace("\\n", "\n"));
+
+//            try {
+//                respond();
+//            } catch (Exception e) {
+//                try (BufferedWriter writer = new BufferedWriter(new FileWriter("logggg.txt", true))) {
+//                    writer.write("Error:\n" + e.getMessage());
+//                    writer.newLine(); // Add a newline after each log message (optional)
+//                } catch (IOException ie) {}
+//            }
+//
+//            try (BufferedWriter writer = new BufferedWriter(new FileWriter("logggg.txt", true))) {
+//                writer.write("Output:\n" + respond());
+//                writer.newLine(); // Add a newline after each log message (optional)
+//            } catch (IOException e) {}
             // Output
             System.out.println(respond().replace("\n", "\\n"));
 //            long end = System.currentTimeMillis();
