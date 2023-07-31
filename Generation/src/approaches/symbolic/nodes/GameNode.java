@@ -1,7 +1,7 @@
 package approaches.symbolic.nodes;
 
-import approaches.symbolic.SymbolMapper;
-import approaches.symbolic.SymbolMapper.MappedSymbol;
+import approaches.symbolic.SymbolMap;
+import approaches.symbolic.SymbolMap.MappedSymbol;
 
 import game.Game;
 import game.equipment.Equipment;
@@ -17,7 +17,7 @@ import java.util.List;
 /**
  * Node representing a game Ludeme. Since this is the root of the tree, it has no parent.
  */
-public class GameNode extends GeneratorNode {
+public class GameNode extends GenerationNode {
     static final MappedSymbol gameSymbol = new MappedSymbol(Grammar.grammar().findSymbolByPath("game.Game"), null);
     static MappedSymbol nameSymbol = new MappedSymbol(Grammar.grammar().findSymbolByPath("java.lang.String"), null);
     static MappedSymbol playersSymbol = new MappedSymbol(Grammar.grammar().findSymbolByPath("game.players.Players"), null);
@@ -52,7 +52,7 @@ public class GameNode extends GeneratorNode {
     }
 
     @Override
-    public List<GeneratorNode> nextPossibleParameters(SymbolMapper symbolMapper) {
+    public List<GenerationNode> nextPossibleParameters(SymbolMap symbolMap) {
         if (complete) return List.of();
 
         switch (parameterSet.size()) {
@@ -63,7 +63,7 @@ public class GameNode extends GeneratorNode {
                 return List.of(new ClassNode(playersSymbol, this));
             }
             case 2 -> {
-                ArrayList<GeneratorNode> options = new ArrayList<>(2);
+                ArrayList<GenerationNode> options = new ArrayList<>(2);
                 options.add(new EmptyNode(this));
                 options.add(new ClassNode(modeSymbol, this));
                 return options;
@@ -91,12 +91,12 @@ public class GameNode extends GeneratorNode {
 
     @Override
     public String toString() {
-        return "(" + symbol.grammarLabel() + ": " + String.join(", ", parameterSet.stream().map(GeneratorNode::toString).toList()) + ")";
+        return "(" + symbol.grammarLabel() + ": " + String.join(", ", parameterSet.stream().map(GenerationNode::toString).toList()) + ")";
     }
 
     @Override
     String buildDescription() {
-        String parameterString = String.join(" ", parameterSet.stream().filter(s -> !(s instanceof EmptyNode || s instanceof EndOfClauseNode)).map(GeneratorNode::description).toList());
+        String parameterString = String.join(" ", parameterSet.stream().filter(s -> !(s instanceof EmptyNode || s instanceof EndOfClauseNode)).map(GenerationNode::description).toList());
         if (parameterString.length() > 0)
             parameterString = " " + parameterString;
 
@@ -110,34 +110,34 @@ public class GameNode extends GeneratorNode {
     @Override
     public GameNode copyDown() {
         GameNode clone = new GameNode(symbol);
-        clone.parameterSet.addAll(parameterSet.stream().map(GeneratorNode::copyDown).toList());
+        clone.parameterSet.addAll(parameterSet.stream().map(GenerationNode::copyDown).toList());
         clone.complete = complete;
         clone.compilerCache = compilerCache;
         return clone;
     }
 
-    public GeneratorNode nameNode() {
+    public GenerationNode nameNode() {
         return parameterSet.get(0);
     }
 
-    public GeneratorNode playersNode() {
+    public GenerationNode playersNode() {
         return parameterSet.get(1);
     }
 
-    public GeneratorNode modeNode() {
+    public GenerationNode modeNode() {
         return parameterSet.get(2);
     }
 
-    public GeneratorNode equipmentNode() {
+    public GenerationNode equipmentNode() {
         return parameterSet.get(3);
     }
 
-    public GeneratorNode rulesNode() {
+    public GenerationNode rulesNode() {
         return parameterSet.get(4);
     }
 
     @Override
-    public void setParent(GeneratorNode parent) {
+    public void setParent(GenerationNode parent) {
         throw new RuntimeException("Cannot set parent of GameNode");
     }
 }

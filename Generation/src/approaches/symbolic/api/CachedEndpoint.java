@@ -1,35 +1,45 @@
 package approaches.symbolic.api;
 
-import approaches.symbolic.CachedMapper;
+import approaches.symbolic.CachedMap;
 import approaches.symbolic.FractionalCompiler;
-import approaches.symbolic.SymbolMapper;
-import approaches.symbolic.nodes.GeneratorNode;
+import approaches.symbolic.SymbolMap;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Scanner;
 import java.util.Stack;
 
 import static approaches.symbolic.FractionalCompiler.standardize;
 
 public abstract class CachedEndpoint {
-    SymbolMapper symbolMapper = new CachedMapper();
+    SymbolMap symbolMap = new CachedMap();
     Stack<FractionalCompiler.CompilationState> cachedCompilation;
     String rawInput;
     abstract String respond();
 
     void updateCache(String input) {
+//        try (BufferedWriter writer = new BufferedWriter(new FileWriter("logggg.txt", true))) {
+//            writer.write("Input:\n" + input);
+//            writer.newLine(); // Add a newline after each log message (optional)
+//        } catch (IOException e) {}
+
         String standardInput = standardize(input);
 
-        if (cachedCompilation == null || cachedCompilation.size() == 0) {
-            cachedCompilation = FractionalCompiler.compileFraction(standardInput, symbolMapper);
-        } else {
-            String cachedDescription = cachedCompilation.peek().consistentGame.root().description();
-            if (!standardInput.equals(cachedDescription)) {
-                if (standardInput.startsWith(cachedDescription))
-                    cachedCompilation = FractionalCompiler.compileFraction(standardInput, cachedCompilation, symbolMapper);
-                else
-                    cachedCompilation = FractionalCompiler.compileFraction(standardInput, symbolMapper);
-            }
-        }
+//        if (cachedCompilation == null || cachedCompilation.size() == 0) {
+//            cachedCompilation = FractionalCompiler.compileFraction(standardInput, symbolMap);
+//        } else {
+//            String cachedDescription = cachedCompilation.peek().consistentGame.root().description();
+//            if (!standardInput.equals(cachedDescription)) {
+//                if (standardInput.startsWith(cachedDescription))
+//                    cachedCompilation = FractionalCompiler.compileFraction(standardInput, cachedCompilation, symbolMap);
+//                else
+//                    cachedCompilation = FractionalCompiler.compileFraction(standardInput, symbolMap);
+//            }
+//        }
+
+        cachedCompilation = FractionalCompiler.compileFraction(standardInput, symbolMap);
+
 
         rawInput = input;
     }
@@ -42,6 +52,20 @@ public abstract class CachedEndpoint {
 //            long start = System.currentTimeMillis();
             // Input
             updateCache(sc.nextLine().replace("\\n", "\n"));
+
+//            try {
+//                respond();
+//            } catch (Exception e) {
+//                try (BufferedWriter writer = new BufferedWriter(new FileWriter("logggg.txt", true))) {
+//                    writer.write("Error:\n" + e.getMessage());
+//                    writer.newLine(); // Add a newline after each log message (optional)
+//                } catch (IOException ie) {}
+//            }
+//
+//            try (BufferedWriter writer = new BufferedWriter(new FileWriter("logggg.txt", true))) {
+//                writer.write("Output:\n" + respond());
+//                writer.newLine(); // Add a newline after each log message (optional)
+//            } catch (IOException e) {}
             // Output
             System.out.println(respond().replace("\n", "\\n"));
 //            long end = System.currentTimeMillis();

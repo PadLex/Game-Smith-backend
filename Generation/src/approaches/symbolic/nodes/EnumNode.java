@@ -1,7 +1,7 @@
 package approaches.symbolic.nodes;
 
-import approaches.symbolic.SymbolMapper;
-import approaches.symbolic.SymbolMapper.MappedSymbol;
+import approaches.symbolic.SymbolMap;
+import approaches.symbolic.SymbolMap.MappedSymbol;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
@@ -9,8 +9,8 @@ import java.util.List;
 /**
  * Node representing an enum ludeme. This is a terminal node.
  */
-public class EnumNode extends GeneratorNode {
-    EnumNode(MappedSymbol symbol, GeneratorNode parent) {
+public class EnumNode extends GenerationNode {
+    EnumNode(MappedSymbol symbol, GenerationNode parent) {
         super(symbol, parent);
     }
 
@@ -22,7 +22,7 @@ public class EnumNode extends GeneratorNode {
         }
     }
 
-    public List<GeneratorNode> nextPossibleParameters(SymbolMapper symbolMapper) {
+    public List<GenerationNode> nextPossibleParameters(SymbolMap symbolMap) {
         return List.of();
     }
 
@@ -32,7 +32,7 @@ public class EnumNode extends GeneratorNode {
     }
 
     @Override
-    public void addParameter(GeneratorNode param) {
+    public void addParameter(GenerationNode param) {
         throw new RuntimeException("Enum nodes are terminal");
     }
 

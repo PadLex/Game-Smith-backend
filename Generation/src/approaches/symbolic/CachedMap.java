@@ -9,7 +9,7 @@ import java.util.Map;
 /**
  * Extends SymbolMapper by memoizing the results of the nextPossibilities method.
  */
-public class CachedMapper extends SymbolMapper {
+public class CachedMap extends SymbolMap {
     public Map<String, List<MappedSymbol>> cachedQueries = new HashMap<>();
 
     @Override

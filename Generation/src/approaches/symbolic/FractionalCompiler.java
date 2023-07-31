@@ -33,17 +33,17 @@ public class FractionalCompiler {
     }
 
     public static class CompilationState {
-        public final GeneratorNode consistentGame;
-        public final List<GeneratorNode> remainingOptions;
+        public final GenerationNode consistentGame;
+        public final List<GenerationNode> remainingOptions;
         public final List<InternalException> exceptions;
 
-        public CompilationState(GeneratorNode consistentGame, List<GeneratorNode> remainingOptions) {
+        public CompilationState(GenerationNode consistentGame, List<GenerationNode> remainingOptions) {
             this.consistentGame = consistentGame;
             this.remainingOptions = remainingOptions;
             this.exceptions = new ArrayList<>();
         }
 
-        public CompilationState(GeneratorNode consistentGame, List<GeneratorNode> remainingOptions, List<InternalException> exceptions) {
+        public CompilationState(GenerationNode consistentGame, List<GenerationNode> remainingOptions, List<InternalException> exceptions) {
             this.consistentGame = consistentGame;
             this.remainingOptions = remainingOptions;
             this.exceptions = exceptions;
@@ -56,8 +56,8 @@ public class FractionalCompiler {
      * @param symbolMapper The SymbolMapper to use
      * @return The root of the tree of GeneratorNodes. Crashes if it encounters an exception
      */
-    public static GameNode compileComplete(String standardInput, SymbolMapper symbolMapper) {
-        Stack<CompilationState> partialCompilation = compileFraction(standardInput, symbolMapper);
+    public static GameNode compileComplete(String standardInput, SymbolMap symbolMap) {
+        Stack<CompilationState> partialCompilation = compileFraction(standardInput, symbolMap);
         if (!partialCompilation.peek().exceptions.isEmpty())
             partialCompilation.peek().exceptions.forEach(Throwable::printStackTrace); // TODO display most important errors
 
@@ -74,12 +74,12 @@ public class FractionalCompiler {
         * @param symbolMapper The SymbolMapper to use
         * @return A PartialCompilation containing the consistent games and any exceptions that occurred
      */
-    public static Stack<CompilationState> compileFraction(String standardInput, SymbolMapper symbolMapper) {
+    public static Stack<CompilationState> compileFraction(String standardInput, SymbolMap symbolMap) {
         Stack<CompilationState> consistentGames = new Stack<>();
-        GeneratorNode gameNode = new GameNode();
-        List<GeneratorNode> nextOptions = gameNode.nextPossibleParameters(symbolMapper, null, true, false);
+        GenerationNode gameNode = new GameNode();
+        List<GenerationNode> nextOptions = gameNode.nextPossibleParameters(symbolMap, null, true, false);
         consistentGames.add(new CompilationState(gameNode, nextOptions));
-        return compileFraction(standardInput, consistentGames, symbolMapper);
+        return compileFraction(standardInput, consistentGames, symbolMap);
     }
 
     /*
@@ -90,7 +90,7 @@ public class FractionalCompiler {
      * @param symbolMapper The SymbolMapper to use
      * @return A PartialCompilation containing the consistent games and any exceptions that occurred
      */
-    public static Stack<CompilationState> compileFraction(String standardInput, Stack<CompilationState> currentStack, SymbolMapper symbolMapper) {
+    public static Stack<CompilationState> compileFraction(String standardInput, Stack<CompilationState> currentStack, SymbolMap symbolMap) {
         // If a complete game isn't found, the longest consistent games are returned
         Stack<CompilationState> longestCompilations = (Stack<CompilationState>) currentStack.clone();
 
@@ -111,10 +111,10 @@ public class FractionalCompiler {
 
             // Loops through all options and adds them to the stack if they are consistent with the standardInput description
             try {
-                GeneratorNode newNode = appendOption(state.consistentGame, state.remainingOptions.get(0), standardInput);
+                GenerationNode newNode = appendOption(state.consistentGame, state.remainingOptions.get(0), standardInput);
 
                 assert !newNode.isComplete() || newNode instanceof GameNode;
-                List<GeneratorNode> nextOptions = newNode.nextPossibleParameters(symbolMapper, null, true, false);
+                List<GenerationNode> nextOptions = newNode.nextPossibleParameters(symbolMap, null, true, false);
                 CompilationState newCompilationState = new CompilationState(newNode, nextOptions);
                 currentStack.add(newCompilationState);
 
@@ -147,7 +147,7 @@ public class FractionalCompiler {
      * @param standardInput The standardized description
      * @return The new game, or null if the option is not consistent with the standardInput description
      */
-    static GeneratorNode appendOption(GeneratorNode node, GeneratorNode option, String standardInput) throws InternalException {
+    static GenerationNode appendOption(GenerationNode node, GenerationNode option, String standardInput) throws InternalException {
         String currentDescription = node.root().description();
 
         if (currentDescription.length() >= standardInput.length())
@@ -202,7 +202,7 @@ public class FractionalCompiler {
                 }
             }
 
-            GeneratorNode newNode = node.copyUp();
+            GenerationNode newNode = node.copyUp();
             option.setParent(newNode);
             newNode.addParameter(option);
 
@@ -232,13 +232,13 @@ public class FractionalCompiler {
 
             }
 
-            if (option instanceof EndOfClauseNode) {
+            if (option instanceof EndOfClauseNode && !trailingDescription.isEmpty()) {
                 char currentChar = trailingDescription.charAt(0);
                 if (currentChar != ')' && currentChar != '}')
                     throw new MissmatchException("Not a closing bracket"); // TODO I could probably handle this with the trailingDescription
             }
 
-            GeneratorNode nodeCopy = node.copyUp();
+            GenerationNode nodeCopy = node.copyUp();
             option.setParent(nodeCopy);
             nodeCopy.addParameter(option);
 
@@ -275,7 +275,6 @@ public class FractionalCompiler {
      * @return The standardized description
      */
     public static String standardize(String str) {
-        str = str.strip();
         str = str.replaceAll("\\s+", " ");
         str = str.replace("( ", "(");
         str = str.replace(" )", ")");
@@ -303,26 +302,24 @@ public class FractionalCompiler {
      * @param standard A standardized substring of the description
      */
     public static String destandardize(String original, String standard) {
-        String regex = standard;
-        regex = regex.replace(" ", "\\s+");
-        regex = regex.replace("(", "\\(\\s*");
-        regex = regex.replace(")", "\\s*\\)");
-        regex = regex.replace("{", "\\{\\s*");
-        regex = regex.replace("}", "\\s*\\}");
-        regex = regex.replace(":", "\\s*:\\s*");
-        regex = regex.replaceAll("\\d+\\.?\\d*", "\\\\d+\\\\.?\\\\d*");
-        regex = regex.replaceAll("[ ({]-1[ )}]", "[ ({](Off)|(-1)[ )}]");
-        regex = regex.replaceAll("[ ({]-2[ )}]", "[ ({](End)|(-2)[ )}]");
-        regex = regex.replaceAll("[ ({]-1[ )}]", "[ ({](Undefined)|(-1)[ )}]");
+        String pattern = standard;
+        pattern = pattern.replace(" ", "\\s+");
+        pattern = pattern.replace("(", "\\(\\s*");
+        pattern = pattern.replace(")", "\\s*\\)");
+        pattern = pattern.replace("{", "\\{\\s*");
+        pattern = pattern.replace("}", "\\s*\\}");
+        pattern = pattern.replace(":", "\\s*:\\s*");
+        pattern = pattern.replaceAll("\\d+\\.?\\d*", "\\\\d+\\\\.?\\\\d*");
+        pattern = pattern.replaceAll("[ ({]-1[ )}]", "[ ({](Off)|(-1)[ )}]");
+        pattern = pattern.replaceAll("[ ({]-2[ )}]", "[ ({](End)|(-2)[ )}]");
+        pattern = pattern.replaceAll("[ ({]-1[ )}]", "[ ({](Undefined)|(-1)[ )}]");
 
-        Pattern pattern = Pattern.compile(regex);
-        Matcher matcher = pattern.matcher(original);
+        Matcher matcher = Pattern.compile(pattern).matcher(original);
 
         if (matcher.lookingAt())
             return original.substring(0, matcher.end());
 
         return "";
     }
-
 
 }

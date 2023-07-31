@@ -1,13 +1,11 @@
 package approaches.symbolic.nodes;
 
-import approaches.symbolic.SymbolMapper;
-import approaches.symbolic.SymbolMapper.MappedSymbol;
+import approaches.symbolic.SymbolMap;
+import approaches.symbolic.SymbolMap.MappedSymbol;
 import game.functions.booleans.BooleanConstant;
 import game.functions.dim.DimConstant;
 import game.functions.floats.FloatConstant;
-import game.functions.floats.FloatFunction;
 import game.functions.ints.IntConstant;
-import game.functions.ints.IntFunction;
 
 import java.util.List;
 import java.util.Objects;
@@ -15,12 +13,12 @@ import java.util.Objects;
 /**
  * Represents string, int, float and boolean values. It's always a leaf node and compiles to a constant.
  */
-public class PrimitiveNode extends GeneratorNode {
+public class PrimitiveNode extends GenerationNode {
 
     public enum PrimitiveType {INT, FLOAT, DIM, STRING, BOOLEAN}
     private Object value;
 
-    PrimitiveNode(MappedSymbol symbol, GeneratorNode parent) {
+    PrimitiveNode(MappedSymbol symbol, GenerationNode parent) {
         super(symbol, parent);
     }
 
@@ -62,12 +60,12 @@ public class PrimitiveNode extends GeneratorNode {
         return value;
     }
 
-    public List<GeneratorNode> nextPossibleParameters(SymbolMapper symbolMapper) {
+    public List<GenerationNode> nextPossibleParameters(SymbolMap symbolMap) {
         return List.of();
     }
 
     @Override
-    public void addParameter(GeneratorNode param) {
+    public void addParameter(GenerationNode param) {
         throw new RuntimeException("Primitive nodes are terminal");
     }
 

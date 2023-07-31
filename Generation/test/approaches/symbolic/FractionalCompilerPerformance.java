@@ -17,7 +17,7 @@ import static approaches.symbolic.FractionalCompiler.compileComplete;
 import static approaches.symbolic.FractionalCompiler.standardize;
 
 public class FractionalCompilerPerformance {
-    static void testLudiiLibrary(SymbolMapper symbolMapper, int limit) throws IOException {
+    static void testLudiiLibrary(SymbolMap symbolMap, int limit) throws IOException {
         List<String> skip = List.of("Kriegspiel (Chess).lud", "Throngs.lud", "Tai Shogi.lud", "Taikyoku Shogi.lud", "Yonin Seireigi.lud", "Yonin Shogi.lud"); // "To Kinegi tou Lagou.lud"
 
         String gamesRoot = "./Common/res/lud/board";
@@ -61,7 +61,7 @@ public class FractionalCompilerPerformance {
 
             GameNode rootNode;
             try {
-                rootNode = compileComplete(standardize(description.expanded()), symbolMapper);
+                rootNode = compileComplete(standardize(description.expanded()), symbolMap);
             } catch (Exception e) {
                 System.out.println("Could not compile description " + path.getFileName());
                 System.out.println(e.getMessage());
@@ -115,8 +115,8 @@ public class FractionalCompilerPerformance {
     }
 
     public static void main(String[] args) throws IOException {
-        CachedMapper symbolMapper = new CachedMapper();
-        testLudiiLibrary(symbolMapper, 100);
+        CachedMap symbolMapper = new CachedMap();
+        testLudiiLibrary(symbolMapper, 500);
         System.out.println("cache:" + symbolMapper.cachedQueries.size());
 
 //        testLudiiLibrary(symbolMapper, 100);

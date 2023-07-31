@@ -61,6 +61,8 @@ public class EvalGames
 	private static ArrayList<ArrayList<Double>> gameConceptMatrix = null;
 
 	private static Map<String, Double> gameRatings;
+
+	public static boolean debug = true;
 	
 	//-------------------------------------------------------------------------
 	
@@ -241,6 +243,7 @@ public class EvalGames
 		if(gameHasNoMoves(game)) return 0.0;
 
 		SkillTrace skillTrace = new SkillTrace();
+		skillTrace.debug = debug;
 		skillTrace.setNumTrialsPerMatch(5);
 		skillTrace.setHardTimeLimit(60);
 		List<Metric> metrics = new ArrayList<>();
@@ -645,7 +648,7 @@ public class EvalGames
 				catch(final Exception e)
 				{
 					// probably running from command line.
-					System.out.println(message);
+					if (debug) System.out.println(message);
 				}
 				return "\n";
 			}
@@ -659,7 +662,7 @@ public class EvalGames
 				catch(final Exception e)
 				{
 					// probably running from command line.
-					System.out.println(message);
+					if (debug) System.out.println(message);
 				}
 				return "\n";
 			}
@@ -673,7 +676,7 @@ public class EvalGames
 		catch(final Exception e)
 		{
 			// probably running from command line.
-			System.out.println(message);
+			if (debug) System.out.println(message);
 		}
 
 		// If using Ludii AI, need to get the algorithm used.
@@ -812,7 +815,7 @@ public class EvalGames
 				catch(final Exception e)
 				{
 					// probably running from command line.
-					System.out.print(".");
+					if (debug) System.out.print(".");
 				}
 				
 				allStoredTrials.add(new Trial(context.trial()));
@@ -843,7 +846,7 @@ public class EvalGames
 		catch(final Exception e)
 		{
 			// probably running from command line.
-			System.out.print("\nTrials completed.\n");
+			if (debug) System.out.print("\nTrials completed.\n");
 		}
 		
 		final DecimalFormat df = new DecimalFormat("#.#####");
@@ -882,7 +885,7 @@ public class EvalGames
 			catch(final Exception e)
 			{
 				// probably running from command line.
-				System.out.print(metric.name() + "\n");
+				if (debug) System.out.print(metric.name() + "\n");
 			}
 			
 			final Double score = metric.apply(game, evaluation, trials, randomProviderStates);			
@@ -908,7 +911,7 @@ public class EvalGames
 		catch (final Exception e)
 		{
 			// Probably running from command line
-			System.out.println(analysisPanelString);
+			if (debug) System.out.println(analysisPanelString);
 		}
 
 		return csvOutputString.substring(0, csvOutputString.length()-1) + "\n";
