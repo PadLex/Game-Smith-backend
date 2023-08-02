@@ -11,7 +11,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Stack;
 
 import static approaches.symbolic.FractionalCompiler.standardize;
 
@@ -43,16 +42,16 @@ public class FractionalCompilerCorrectness {
             Parser.expandAndParse(description, userSelections, report, true, false);
 
             String expandedDescription = standardize(description.expanded());
-            List<FractionalCompiler.CompilationState> compilation = FractionalCompiler.compileFraction("", symbolMap);
-            for (int i = 0; i < expandedDescription.length(); i++) {
+            FractionalCompiler.CompilationCheckpoint compilation = FractionalCompiler.compileFraction("(game", symbolMap);
+            for (int i = 5; i < expandedDescription.length(); i++) {
                 System.out.println(expandedDescription.substring(0, i + 1));
                 compilation = FractionalCompiler.compileFraction(expandedDescription.substring(0, i + 1), compilation, symbolMap);
-                System.out.println("   --> " + compilation.get(0).consistentGame.root().description());
-                System.out.println("   --> " + compilation.size());
-                compilation.forEach(s -> System.out.println("       --> " + s.consistentGame + " ->> " + s.remainingOptions + " -- " + s.exceptions));
+                System.out.println("   --> " + compilation.longest.get(0).consistentGame.root().description());
+                System.out.println("   --> " + compilation.longest.size());
+//                compilation.forEach(s -> System.out.println("       --> " + s.consistentGame + " ->> " + s.remainingOptions + " -- " + s.exceptions));
 
-                if (i > 40)
-                    throw new RuntimeException();
+//                if (i > 40)
+//                    throw new RuntimeException();
             }
 
             System.out.println("expected:\n"+expandedDescription);
@@ -63,7 +62,7 @@ public class FractionalCompilerCorrectness {
 //                throw new RuntimeException("Error compiling " + path.getFileName());
 //            }
 
-            if (!compilation.get(0).consistentGame.root().isRecursivelyComplete()) {
+            if (!compilation.longest.get(0).consistentGame.root().isRecursivelyComplete()) {
                 throw new RuntimeException("Incomplete " + path.getFileName());
             }
         }

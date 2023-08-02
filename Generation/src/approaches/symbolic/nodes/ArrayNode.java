@@ -62,7 +62,7 @@ public class ArrayNode extends GenerationNode {
     }
 
     @Override
-    public String toString() {
+    public String buildString() {
         return "{" + symbol.grammarLabel() + "; " + String.join(" ", parameterSet.stream().map(GenerationNode::toString).toList()) + "}";
     }
 

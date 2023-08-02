@@ -120,7 +120,7 @@ public class FractionalCompilerPerformance {
 
     public static void main(String[] args) throws IOException {
         CachedMap symbolMapper = new CachedMap();
-        testLudiiLibrary(symbolMapper, 0, 2000);
+        testLudiiLibrary(symbolMapper, 0, 100);
         System.out.println("cache:" + symbolMapper.cachedQueries.size());
 
 //        String gameName = "Choro (Acholi).lud"; // TODO Throngs (memory error), There and Back, Pyrga, There and Back, Kriegspiel (Chess), Tai Shogi

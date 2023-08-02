@@ -4,18 +4,14 @@ import approaches.symbolic.CachedMap;
 import approaches.symbolic.FractionalCompiler;
 import approaches.symbolic.SymbolMap;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.List;
 import java.util.Scanner;
-import java.util.Stack;
 
 import static approaches.symbolic.FractionalCompiler.standardize;
 
 public abstract class CachedEndpoint {
     SymbolMap symbolMap = new CachedMap();
-    List<FractionalCompiler.CompilationState> cachedCompilation;
+    FractionalCompiler.CompilationCheckpoint cachedCompilation;
     String rawInput;
     abstract String respond();
 

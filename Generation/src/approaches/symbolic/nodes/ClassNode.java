@@ -46,7 +46,7 @@ public class ClassNode extends GenerationNode {
     }
 
     @Override
-    public String toString() {
+    public String buildString() {
         return "(" + symbol.path() + "; " + String.join(" ", parameterSet.stream().map(GenerationNode::toString).toList()) + ")";
     }
 

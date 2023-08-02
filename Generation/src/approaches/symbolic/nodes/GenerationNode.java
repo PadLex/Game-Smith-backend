@@ -19,6 +19,7 @@ public abstract class GenerationNode {
     GenerationNode parent;
     Object compilerCache = null;
     String descriptionCache = null;
+    String stringCache = null;
     boolean complete;
 
     public GenerationNode(MappedSymbol symbol, GenerationNode parent) {
@@ -143,6 +144,7 @@ public abstract class GenerationNode {
 
         compilerCache = null;
         descriptionCache = null;
+        stringCache = null;
     }
 
     public boolean isComplete() {
@@ -218,9 +220,22 @@ public abstract class GenerationNode {
         return descriptionCache;
     }
 
+    /**
+     * Note: this function is memoized
+     * @return A representation of the game in compilable standard form as defined in DescriptionParser
+     */
+    public String toString() {
+        if (stringCache == null)
+            stringCache = buildString();
+
+        return stringCache;
+    }
+
+    abstract String buildString();
+
     String buildDescription() {
         if (symbol.label != null)
-            return symbol.label + ":" + this.toString();
+            return symbol.label + ":" + this;
 
         return this.toString();
     }
@@ -241,9 +256,9 @@ public abstract class GenerationNode {
         return node;
     }
 
-    public int nodeCount() {
-        return 1 + parameterSet.stream().mapToInt(GenerationNode::nodeCount).sum();
-    }
+//    public int nodeCount() {
+//        return 1 + parameterSet.stream().mapToInt(GenerationNode::nodeCount).sum();
+//    }
 
     public void stripTrailingEmptyNodes() {
         for (int i=parameterSet.size()-1; i >= 0; i--) {

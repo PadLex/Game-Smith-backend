@@ -75,9 +75,9 @@ public class PrimitiveNode extends GenerationNode {
     }
 
     @Override
-    public String toString() {
+    public String buildString() {
         if (value == null)
-            return getType() + "?";
+            return "NEW_" + getType() + "?";
 
         if (value instanceof String)
             return "\"" + value + "\"";

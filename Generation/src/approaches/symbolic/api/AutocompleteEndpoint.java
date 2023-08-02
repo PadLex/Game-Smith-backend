@@ -10,35 +10,60 @@ import java.util.*;
 import static approaches.symbolic.FractionalCompiler.standardize;
 
 
-
 public class AutocompleteEndpoint {
 
     String currentStandardInput;
-    List<FractionalCompiler.CompilationState> previousCompilation;
-    List<FractionalCompiler.CompilationState> currentCompilation;
+    FractionalCompiler.CompilationCheckpoint previousCompilation;
+    FractionalCompiler.CompilationCheckpoint currentCompilation;
     SymbolMap symbolMap;
 
     // Compiles the game as far as it goes and returns all completions that start with the input's tail
-    public Collection<GenerationNode> autocomplete(String standardInput) {
+    Collection<String> autocomplete(String standardInput) {
         if ("(gam".startsWith(standardInput))
-            return List.of(new GameNode());
+            return List.of("(game".substring(standardInput.length()));
 
-        List<GenerationNode> completions = new ArrayList<>();
-
-        // Assuming we are continuing the ludeme
-//        if (standardInput.length() > 5 && standardInput.charAt(standardInput.length() - 1) != ' ') {
-//            for (FractionalCompiler.CompilationState state: previousCompilation) {
-//                GenerationNode node = state.consistentGame;
-//                String tail = standardInput.substring(node.root().description().length()).strip();
-//                completions.addAll(compatibleOptions(node, tail).stream().filter(n -> !n.description().equals(tail)).toList());
-//            }
-//        }
+        List<String> completions = new ArrayList<>();
 
         // Assuming we are starting a new ludeme
+//        System.out.println(currentCompilation.longest.size() + " + " + currentCompilation.secondLongest.size());
         for (FractionalCompiler.CompilationState state: currentCompilation) {
             GenerationNode node = state.consistentGame;
             String tail = standardInput.substring(node.root().description().length());
-            completions.addAll(compatibleOptions(node, tail));
+
+            for (GenerationNode option: compatibleOptions(node, tail)) {
+                String completion;
+
+                if (option instanceof PrimitiveNode) {
+                    completion = option.description();
+
+                    boolean addSpace = !standardInput.endsWith(" ");
+                    if (option.symbol().label != null) {
+//                        System.out.println("tail:" + tail);
+//                        System.out.println("label:" + option.symbol().label);
+
+                        if (!tail.isEmpty()) {
+                            if (option instanceof ContinuedPrimitive)
+                                completion = completion.substring(tail.indexOf(':'));
+                            else
+                                completion = completion.substring(tail.length() - 1);
+                        }
+
+
+                        if (tail.length() > 1)
+                            addSpace = false;
+                    }
+
+                    if (addSpace && !(option instanceof ContinuedPrimitive))
+                        completion = " " + completion;
+                }
+                else {
+                    String description = option.root().description();
+                    if (description.length() < standardInput.length()) continue;
+                    completion = description.substring(standardInput.length());
+                }
+
+                completions.add(completion);
+            }
         }
 
         return completions;
@@ -48,74 +73,26 @@ public class AutocompleteEndpoint {
     //
     public List<GenerationNode> compatibleOptions(GenerationNode node, String tail) {
 
-        System.out.println(node.root().nodeCount() + " - " + node.root().description());
-        System.out.println(node.root().nodeCount() + " - " + node.root());
-        System.out.println(tail);
+//        System.out.println(node.root().description().length() + " - " + node.root().description());
+//        System.out.println(node.root().description().length() + " - " + node.root());
+//        System.out.println(tail);
 
         List<GenerationNode> completions = new ArrayList<>();
 
         for (GenerationNode option: node.nextPossibleParameters(symbolMap, null, false, true)) {
             assert !(option instanceof EmptyNode);
 
-            System.out.println("option " + option);
+//            System.out.println("option " + (option.symbol().label == null? "":option.symbol().label) + ":" + option);
 
             // Verify whether the option is compatible with the tail
             if (option instanceof PrimitiveNode primitiveOption) {
-
-                String value = tail;
-
-                if (option.symbol().label != null) {
-                    if (!tail.startsWith(' ' + option.symbol().label))
-                        continue;
-
-                    value = tail.substring(option.symbol().label.length() + 1);
-                } else if (!tail.isEmpty() && value.charAt(0) == ' ') {
-                    value = value.substring(1);
-                }
-
-                boolean valid = switch (primitiveOption.getType()) {
-                    case INT -> {
-                        if (value.equals("-")) yield true;
-                        try {
-                            Integer.parseInt(value);
-                            yield true;
-                        } catch (NumberFormatException ignored) {
-                            yield false;
-                        }
-                    }
-                    case FLOAT -> {
-                        if (value.equals("-")) yield true;
-                        if (value.endsWith(".")) value = value.substring(0, value.length() - 1);
-                        try {
-                            Float.parseFloat(value);
-                            yield true;
-                        } catch (NumberFormatException ignored) {
-                            yield false;
-                        }
-                    }
-                    case DIM -> {
-                        try {
-                            yield Integer.parseInt(value) >= 0;
-                        } catch (NumberFormatException ignored) {
-                            yield false;
-                        }
-                    }
-                    case STRING -> value.startsWith("\"")
-                            && value.substring(1).indexOf('"') == -1; // Todo accept \" if we ever need to support metadata
-                    case BOOLEAN -> "True".startsWith(value) || "False".startsWith(value);
-                };
-
-//                System.out.println("value:" + value + " valid:" + valid);
-
-                if (value.isEmpty() || valid) {
+                PrimitiveNode builtOption = buildPrimitive(primitiveOption, tail);
+                if (builtOption != null) {
                     GenerationNode newNode = node.copyUp();
-                    if (!value.isEmpty())
-                        option = new ContinuedPrimitive(primitiveOption);
-                    newNode.addParameter(option);
-                    completions.add(option);
+                    newNode.addParameter(builtOption);
+                    completions.add(builtOption);
                 }
-
-            }else if (option instanceof EndOfClauseNode) {
+            } else if (option instanceof EndOfClauseNode) {
                 if (tail.isEmpty()) {
                     GenerationNode newNode = node.copyUp();
                     newNode.addParameter(option);
@@ -128,36 +105,92 @@ public class AutocompleteEndpoint {
                     completions.add(option);
                 }
             }
-
         }
 
         return completions;
     }
 
+    PrimitiveNode buildPrimitive(PrimitiveNode primitiveOption, String tail) {
+        if (tail.isEmpty())
+            return primitiveOption;
+
+        String value;
+
+        if (primitiveOption.symbol().label != null) {
+
+            int colonIndex = tail.indexOf(':');
+
+            // If there is no colon, the tail should be the start of a label
+            if (colonIndex == -1) {
+                if (!(' ' + primitiveOption.symbol().label).startsWith(tail))
+                    return null;
+
+                value = "";
+            } else {
+                if (!(tail.startsWith(' ' + primitiveOption.symbol().label + ':')))
+                    return null;
+
+                value = tail.substring(colonIndex + 1);
+            }
+
+        } else if (tail.charAt(0) == ' ') {
+            value = tail.substring(1);
+        } else {
+            value = tail;
+        }
+
+        if (value.isEmpty())
+            return primitiveOption;
+
+        switch (primitiveOption.getType()) {
+            case INT -> {
+                if (value.equals("-")) return new ContinuedPrimitive(primitiveOption);
+                try {
+                    Integer.parseInt(value);
+                    return new ContinuedPrimitive(primitiveOption);
+                } catch (NumberFormatException ignored) {}
+            }
+            case FLOAT -> {
+                if (value.equals("-")) return new ContinuedPrimitive(primitiveOption);
+                if (value.endsWith(".")) value = value.substring(0, value.length() - 1);
+                try {
+                    Float.parseFloat(value);
+                    return new ContinuedPrimitive(primitiveOption);
+                } catch (NumberFormatException ignored) {}
+            }
+            case DIM -> {
+                try {
+                    if (Integer.parseInt(value) >= 0)
+                        return new ContinuedPrimitive(primitiveOption);
+                } catch (NumberFormatException ignored) {}
+            }
+            case STRING -> {
+//                System.out.println("string value:" + value);
+                if (value.startsWith("\"") && value.substring(1).indexOf('"') == -1) // Todo accept \" if we ever need to support metadata
+                    return new ContinuedPrimitive(primitiveOption);
+            }
+            case BOOLEAN -> {
+                if ("True".startsWith(value) || "False".startsWith(value))
+                    return new ContinuedPrimitive(primitiveOption);
+            }
+        }
+
+        return null;
+    }
+
     String respond(String standardInput) {
         StringBuilder sb = new StringBuilder();
         HashSet<String> completions = new HashSet<>();
-        for (GenerationNode option : autocomplete(standardInput)) {
+
+        for (String completion : autocomplete(standardInput)) {
             //assert option.root().description().startsWith(standardInput);
-            String completion;
-
-            if (option instanceof PrimitiveNode) {
-                completion = option.description();
-                if (!standardInput.endsWith(" ") && !(option instanceof ContinuedPrimitive))
-                    completion = " " + completion;
-
-            }
-            else {
-                String description = option.root().description();
-                if (description.length() < standardInput.length()) continue;
-                completion = description.substring(standardInput.length());
-            }
 
             if (!completions.contains(completion)) {
                 completions.add(completion);
-                sb.append(completion).append("|").append(option.symbol().grammarLabel()).append("||");
+                sb.append(completion).append("|").append("TODO").append("||");
             }
         }
+
         if (sb.length() > 2)
             sb.delete(sb.length() - 2, sb.length());
         return sb.toString();
@@ -185,8 +218,8 @@ public class AutocompleteEndpoint {
 //        }
 
         currentCompilation = FractionalCompiler.compileFraction(standardInput, symbolMap);
-        if (standardInput.length() > 5)
-            previousCompilation = FractionalCompiler.compileFraction(standardInput.substring(0, standardInput.lastIndexOf(' ')), symbolMap);
+//        if (standardInput.length() > 5)
+//            previousCompilation = FractionalCompiler.compileFraction(standardInput.substring(0, standardInput.lastIndexOf(' ')), symbolMap);
     }
 
     void start() {
@@ -210,7 +243,7 @@ public class AutocompleteEndpoint {
         new AutocompleteEndpoint().start();
     }
 
-    class ContinuedPrimitive extends PrimitiveNode {
+    static class ContinuedPrimitive extends PrimitiveNode {
 
         public ContinuedPrimitive(PrimitiveNode primitiveNode) {
             super(primitiveNode.symbol(), primitiveNode.parent());
@@ -219,12 +252,15 @@ public class AutocompleteEndpoint {
 
         @Override
         public String toString() {
-            return "Continued" + super.toString();
+            if (value() == null)
+                return super.toString().replace("NEW_", "CONTINUED_");
+
+            return super.toString();
         }
 
-        @Override
-        public String description() {
-            return "Continued" + super.description();
-        }
+//        @Override
+//        public String description() {
+//            return super.description().replace("NEW_", "CONTINUED_");
+//        }
     }
 }

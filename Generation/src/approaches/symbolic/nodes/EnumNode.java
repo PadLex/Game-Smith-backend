@@ -37,7 +37,7 @@ public class EnumNode extends GenerationNode {
     }
 
     @Override
-    public String toString() {
+    public String buildString() {
         return symbol.grammarLabel();
     }
 }
