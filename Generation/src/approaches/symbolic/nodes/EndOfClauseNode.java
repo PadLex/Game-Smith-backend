@@ -1,16 +1,15 @@
 package approaches.symbolic.nodes;
 
-import approaches.symbolic.SymbolMapper;
-import main.grammar.Symbol;
+import approaches.symbolic.SymbolMap;
 
 import java.util.List;
 
 /**
  * Node representing the end of a clause. This is a terminal node.
  */
-public class EndOfClauseNode extends GeneratorNode {
-    public EndOfClauseNode(GeneratorNode parent) {
-        super(SymbolMapper.endOfClauseSymbol, parent);
+public class EndOfClauseNode extends GenerationNode {
+    public EndOfClauseNode(GenerationNode parent) {
+        super(SymbolMap.endOfClauseSymbol, parent);
     }
 
     @Override
@@ -19,7 +18,7 @@ public class EndOfClauseNode extends GeneratorNode {
     }
 
     @Override
-    public List<GeneratorNode> nextPossibleParameters(SymbolMapper symbolMapper) {
+    public List<GenerationNode> nextPossibleParameters(SymbolMap symbolMap) {
         return List.of();
     }
 

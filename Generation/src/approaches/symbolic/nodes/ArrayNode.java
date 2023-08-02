@@ -1,7 +1,7 @@
 package approaches.symbolic.nodes;
 
-import approaches.symbolic.SymbolMapper;
-import approaches.symbolic.SymbolMapper.MappedSymbol;
+import approaches.symbolic.SymbolMap;
+import approaches.symbolic.SymbolMap.MappedSymbol;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
@@ -11,15 +11,15 @@ import java.util.Objects;
 /**
  * Node representing symbols with a nesting level > 0. Compiles to an array containing its compiled parameters.
  */
-public class ArrayNode extends GeneratorNode {
-    ArrayNode(MappedSymbol symbol, GeneratorNode parent) {
+public class ArrayNode extends GenerationNode {
+    ArrayNode(MappedSymbol symbol, GenerationNode parent) {
         super(symbol, parent);
 
         assert symbol.nesting() > 0;
     }
 
     Object instantiate() {
-        List<Object> arguments = parameterSet.stream().filter(Objects::nonNull).map(GeneratorNode::compile).toList();
+        List<Object> arguments = parameterSet.stream().filter(Objects::nonNull).map(GenerationNode::compile).toList();
 
         Object array;
         if (symbol.nesting() == 1)
@@ -36,18 +36,18 @@ public class ArrayNode extends GeneratorNode {
     }
 
     // TODO do I really need to find all the permutations of IntFunctions and int? Probably not.
-    public List<GeneratorNode> nextPossibleParameters(SymbolMapper symbolMapper) {
+    public List<GenerationNode> nextPossibleParameters(SymbolMap symbolMap) {
         if (!parameterSet.isEmpty() && parameterSet.get(parameterSet.size() - 1) instanceof EndOfClauseNode)
             return List.of();
 
-        List<GeneratorNode> options = new ArrayList<>();
+        List<GenerationNode> options = new ArrayList<>();
         if (symbol.nesting() == 1) {
             switch (symbol.path()) {
                 case "int", "float", "boolean" -> {  // TODO not sure this is correct
                     options.add(new PrimitiveNode(new MappedSymbol(symbol, 0, null), this));
                 }
                 default -> {
-                    options.addAll(symbolMapper.getCompatibleSymbols(symbol).stream().map(s -> fromSymbol(new MappedSymbol(s, null), this)).toList());
+                    options.addAll(symbolMap.getCompatibleSymbols(symbol).stream().map(s -> fromSymbol(new MappedSymbol(s, null), this)).toList());
                 }
             }
         } else {
@@ -63,7 +63,7 @@ public class ArrayNode extends GeneratorNode {
 
     @Override
     public String toString() {
-        return "{" + symbol.grammarLabel() + "; " + String.join(" ", parameterSet.stream().map(GeneratorNode::toString).toList()) + "}";
+        return "{" + symbol.grammarLabel() + "; " + String.join(" ", parameterSet.stream().map(GenerationNode::toString).toList()) + "}";
     }
 
     @Override
@@ -76,7 +76,7 @@ public class ArrayNode extends GeneratorNode {
         if (complete)
             close = "}";
 
-        return label + "{" + String.join(" ", parameterSet.stream().filter(s -> !(s instanceof EmptyNode || s instanceof EndOfClauseNode)).map(GeneratorNode::description).toList()) + close;
+        return label + "{" + String.join(" ", parameterSet.stream().filter(s -> !(s instanceof EmptyNode || s instanceof EndOfClauseNode)).map(GenerationNode::description).toList()) + close;
     }
 
 }

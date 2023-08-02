@@ -1,28 +1,18 @@
 package approaches.symbolic.nodes;
 
-import approaches.symbolic.SymbolMapper;
-import approaches.symbolic.SymbolMapper.MappedSymbol;
-import main.grammar.Symbol;
+import approaches.symbolic.SymbolMap;
+import approaches.symbolic.SymbolMap.MappedSymbol;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
-
-import annotations.Opt;
-import annotations.Or;
-import annotations.Or2;
-import annotations.And;
-import annotations.And2;
 
 /**
  * Node representing a most ludemes. This is usually a non-terminal node.
  */
-public class ClassNode extends GeneratorNode {
-    ClassNode(MappedSymbol symbol, GeneratorNode parent) {
+public class ClassNode extends GenerationNode {
+    ClassNode(MappedSymbol symbol, GenerationNode parent) {
         super(symbol, parent);
         assert !symbol.path().equals("game.Game");
     }
@@ -49,15 +39,15 @@ public class ClassNode extends GeneratorNode {
         throw new RuntimeException("Failed to compile: " + symbol);
     }
 
-    public List<GeneratorNode> nextPossibleParameters(SymbolMapper symbolMapper) {
+    public List<GenerationNode> nextPossibleParameters(SymbolMap symbolMap) {
         List<MappedSymbol> partialParameters = parameterSet.stream().map(node -> node.symbol).toList();
-        List<MappedSymbol> possibleSymbols = symbolMapper.nextPossibilities(symbol, partialParameters);
-        return possibleSymbols.stream().map(s -> GeneratorNode.fromSymbol(s, this)).toList();
+        List<MappedSymbol> possibleSymbols = symbolMap.nextPossibilities(symbol, partialParameters);
+        return possibleSymbols.stream().map(s -> GenerationNode.fromSymbol(s, this)).toList();
     }
 
     @Override
     public String toString() {
-        return "(" + symbol.path() + "; " + String.join(" ", parameterSet.stream().map(GeneratorNode::toString).toList()) + ")";
+        return "(" + symbol.path() + "; " + String.join(" ", parameterSet.stream().map(GenerationNode::toString).toList()) + ")";
     }
 
     @Override
@@ -66,7 +56,7 @@ public class ClassNode extends GeneratorNode {
         if (symbol.label != null)
             label = symbol.label + ":";
 
-        String parameterString = String.join(" ", parameterSet.stream().filter(s -> !(s instanceof EmptyNode || s instanceof EndOfClauseNode)).map(GeneratorNode::description).toList());
+        String parameterString = String.join(" ", parameterSet.stream().filter(s -> !(s instanceof EmptyNode || s instanceof EndOfClauseNode)).map(GenerationNode::description).toList());
         if (parameterString.length() > 0)
             parameterString = " " + parameterString;
 

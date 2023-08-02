@@ -13,11 +13,11 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
-import static approaches.symbolic.PartialCompiler.compileDescription;
-import static approaches.symbolic.PartialCompiler.standardize;
+import static approaches.symbolic.FractionalCompiler.compileComplete;
+import static approaches.symbolic.FractionalCompiler.standardize;
 
-public class TestDescriptionParser {
-    static void testLudiiLibrary(SymbolMapper symbolMapper, int limit) throws IOException {
+public class FractionalCompilerPerformance {
+    static void testLudiiLibrary(SymbolMap symbolMap, int limit) throws IOException {
         List<String> skip = List.of("Kriegspiel (Chess).lud", "Throngs.lud", "Tai Shogi.lud", "Taikyoku Shogi.lud", "Yonin Seireigi.lud", "Yonin Shogi.lud"); // "To Kinegi tou Lagou.lud"
 
         String gamesRoot = "./Common/res/lud/board";
@@ -36,7 +36,7 @@ public class TestDescriptionParser {
             }
 
             if (skip.contains(path.getFileName().toString())) {
-                System.out.println("Skipping " + path.getFileName());
+                System.out.println("Skipping skip" + path.getFileName());
                 continue;
             }
 
@@ -61,7 +61,7 @@ public class TestDescriptionParser {
 
             GameNode rootNode;
             try {
-                rootNode = compileDescription(standardize(description.expanded()), symbolMapper);
+                rootNode = compileComplete(standardize(description.expanded()), symbolMap);
             } catch (Exception e) {
                 System.out.println("Could not compile description " + path.getFileName());
                 System.out.println(e.getMessage());
@@ -115,8 +115,8 @@ public class TestDescriptionParser {
     }
 
     public static void main(String[] args) throws IOException {
-        CachedMapper symbolMapper = new CachedMapper();
-        testLudiiLibrary(symbolMapper, 100);
+        CachedMap symbolMapper = new CachedMap();
+        testLudiiLibrary(symbolMapper, 500);
         System.out.println("cache:" + symbolMapper.cachedQueries.size());
 
 //        testLudiiLibrary(symbolMapper, 100);
