@@ -10,7 +10,7 @@ import java.util.List;
  * Node representing an enum ludeme. This is a terminal node.
  */
 public class EnumNode extends GenerationNode {
-    EnumNode(MappedSymbol symbol, GenerationNode parent) {
+    public EnumNode(MappedSymbol symbol, GenerationNode parent) {
         super(symbol, parent);
     }
 

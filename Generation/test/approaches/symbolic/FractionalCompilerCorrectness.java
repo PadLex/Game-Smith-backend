@@ -11,6 +11,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Stack;
+
+import static approaches.symbolic.FractionalCompiler.standardize;
 
 public class FractionalCompilerCorrectness {
     static void testLudiiLibrary(SymbolMap symbolMap, int limit) throws IOException {
@@ -38,13 +41,37 @@ public class FractionalCompilerCorrectness {
             final UserSelections userSelections = new UserSelections(new ArrayList<>());
             final Report report = new Report();
             Parser.expandAndParse(description, userSelections, report, true, false);
-            // TODO test
+
+            String expandedDescription = standardize(description.expanded());
+            List<FractionalCompiler.CompilationState> compilation = FractionalCompiler.compileFraction("", symbolMap);
+            for (int i = 0; i < expandedDescription.length(); i++) {
+                System.out.println(expandedDescription.substring(0, i + 1));
+                compilation = FractionalCompiler.compileFraction(expandedDescription.substring(0, i + 1), compilation, symbolMap);
+                System.out.println("   --> " + compilation.get(0).consistentGame.root().description());
+                System.out.println("   --> " + compilation.size());
+                compilation.forEach(s -> System.out.println("       --> " + s.consistentGame + " ->> " + s.remainingOptions + " -- " + s.exceptions));
+
+                if (i > 40)
+                    throw new RuntimeException();
+            }
+
+            System.out.println("expected:\n"+expandedDescription);
+
+
+//            if (!compilation.peek().exceptions.isEmpty()) {
+//                compilation.peek().exceptions.forEach(Throwable::printStackTrace);
+//                throw new RuntimeException("Error compiling " + path.getFileName());
+//            }
+
+            if (!compilation.get(0).consistentGame.root().isRecursivelyComplete()) {
+                throw new RuntimeException("Incomplete " + path.getFileName());
+            }
         }
     }
 
     public static void main(String[] args) throws IOException {
         CachedMap symbolMapper = new CachedMap();
-        testLudiiLibrary(symbolMapper, 100);
+        testLudiiLibrary(symbolMapper, 2000);
         System.out.println("cache:" + symbolMapper.cachedQueries.size());
 
 //        testLudiiLibrary(symbolMapper, 100);

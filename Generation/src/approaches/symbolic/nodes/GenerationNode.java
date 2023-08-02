@@ -21,7 +21,7 @@ public abstract class GenerationNode {
     String descriptionCache = null;
     boolean complete;
 
-    GenerationNode(MappedSymbol symbol, GenerationNode parent) {
+    public GenerationNode(MappedSymbol symbol, GenerationNode parent) {
         assert symbol != null;
         this.symbol = symbol;
         this.parent = parent;
@@ -239,6 +239,19 @@ public abstract class GenerationNode {
             node = node.parameterSet.get(i);
         }
         return node;
+    }
+
+    public int nodeCount() {
+        return 1 + parameterSet.stream().mapToInt(GenerationNode::nodeCount).sum();
+    }
+
+    public void stripTrailingEmptyNodes() {
+        for (int i=parameterSet.size()-1; i >= 0; i--) {
+            if (parameterSet.get(i) instanceof EmptyNode)
+                parameterSet.remove(i);
+            else
+                break;
+        }
     }
 
 }

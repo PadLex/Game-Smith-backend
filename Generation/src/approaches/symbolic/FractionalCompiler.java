@@ -3,6 +3,7 @@ import approaches.symbolic.nodes.*;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /*
     * Parses a description of a game into a tree of GeneratorNodes.
@@ -57,15 +58,18 @@ public class FractionalCompiler {
      * @return The root of the tree of GeneratorNodes. Crashes if it encounters an exception
      */
     public static GameNode compileComplete(String standardInput, SymbolMap symbolMap) {
-        Stack<CompilationState> partialCompilation = compileFraction(standardInput, symbolMap);
-        if (!partialCompilation.peek().exceptions.isEmpty())
-            partialCompilation.peek().exceptions.forEach(Throwable::printStackTrace); // TODO display most important errors
-
-        if (partialCompilation.size() != 1) {
-            throw new RuntimeException("Failed to compile:"+standardInput);
+        List<CompilationState> partialCompilation = compileFraction(standardInput, symbolMap);
+        if (!partialCompilation.get(0).exceptions.isEmpty()) {
+            partialCompilation.get(0).exceptions.forEach(Throwable::printStackTrace); // TODO display most important errors
+            System.out.println(partialCompilation.get(0).consistentGame.root().description());
+            throw new RuntimeException("Error compiling " + standardInput);
         }
 
-        return partialCompilation.peek().consistentGame.root();
+        if (partialCompilation.size() != 1)
+            throw new RuntimeException("Failed to compile:" + standardInput);
+
+
+        return partialCompilation.get(0).consistentGame.root();
     }
 
     /*
@@ -74,12 +78,8 @@ public class FractionalCompiler {
         * @param symbolMapper The SymbolMapper to use
         * @return A PartialCompilation containing the consistent games and any exceptions that occurred
      */
-    public static Stack<CompilationState> compileFraction(String standardInput, SymbolMap symbolMap) {
-        Stack<CompilationState> consistentGames = new Stack<>();
-        GenerationNode gameNode = new GameNode();
-        List<GenerationNode> nextOptions = gameNode.nextPossibleParameters(symbolMap, null, true, false);
-        consistentGames.add(new CompilationState(gameNode, nextOptions));
-        return compileFraction(standardInput, consistentGames, symbolMap);
+    public static List<CompilationState> compileFraction(String standardInput, SymbolMap symbolMap) {
+        return compileFraction(standardInput, List.of(new CompilationState(new GameNode(), List.of())), symbolMap);
     }
 
     /*
@@ -90,20 +90,53 @@ public class FractionalCompiler {
      * @param symbolMapper The SymbolMapper to use
      * @return A PartialCompilation containing the consistent games and any exceptions that occurred
      */
-    public static Stack<CompilationState> compileFraction(String standardInput, Stack<CompilationState> currentStack, SymbolMap symbolMap) {
-        // If a complete game isn't found, the longest consistent games are returned
-        Stack<CompilationState> longestCompilations = (Stack<CompilationState>) currentStack.clone();
+    public static List<CompilationState> compileFraction(String standardInput, List<CompilationState> previouslyExcluded, SymbolMap symbolMap) {
 
-        // Loop until a consistent game's description matches the standardInput description
+        // The stack of all the consistent games found so far
+        Stack<CompilationState> currentStack = new Stack<>();
+        for (int i = previouslyExcluded.size() - 1; i >= 0; i--) {
+            List<GenerationNode> nextOptions = previouslyExcluded.get(i).consistentGame.nextPossibleParameters(symbolMap, null, true, false);
+            currentStack.add(new CompilationState(previouslyExcluded.get(i).consistentGame, nextOptions));
+        }
+
+
+//(game "Tablan" (players 2) (equipment {(board (rectangle 4 12) {(track "Track1" "0,E,N1,W,N1,E,N1,W" P1 directed:True) (track "Track2" "47,W,S1,E,S1,W,S1,E" P2 directed:True)} use:Vertex) (piece "Stick" Each (if (and (not (is In (from) (sites Next "Home"))) (!= 0 (mapEntry "Throw" (count Pips)))) (or (if (not (= 1 (var))) (move (from (from) if:(if (=
+        // If a complete game isn't found, the longest consistent games are returned
+        List<CompilationState> excludedStates = new Stack<>();
+
+        // Loop until a game
         while (true) {
 
             // If the stack is empty, all paths lead to dead ends
-            if (currentStack.isEmpty())
-                return longestCompilations;
+            if (currentStack.isEmpty()) {
+                int longestLength = 0;
+                int secondLongestLength = 0;
+                for (CompilationState state: excludedStates) {
+                    int length = state.consistentGame.root().description().length();
+                    if (length > longestLength) {
+                        secondLongestLength = longestLength;
+                        longestLength = length;
+                    } else if (length > secondLongestLength) {
+                        secondLongestLength = length;
+                    }
+                }
+//                System.out.println("first" + longestLength);
+//                System.out.println("second" + secondLongestLength);
+                List<CompilationState> filteredExcluded = new ArrayList<>();
+                for (CompilationState state: excludedStates) {
+                    state.consistentGame.stripTrailingEmptyNodes();
+                    if (state.consistentGame.root().description().length() >= secondLongestLength)
+                        filteredExcluded.add(state);
+                }
+
+                filteredExcluded.sort(Comparator.comparingInt(s -> -s.consistentGame.root().description().length()));
+
+                return filteredExcluded;
+            }
 
             // Since we are performing a depth-first search, we can just pop the most recent game, option pair
             CompilationState state = currentStack.pop();
-//            System.out.println(state.consistentGame.root().description());
+//            System.out.println("Considering:" + state.consistentGame.root() + " + " + state.remainingOptions.get(0));
 
             // If we haven't reached a dead end, remember to consider the next option
             if (state.remainingOptions.size() > 1)
@@ -118,15 +151,6 @@ public class FractionalCompiler {
                 CompilationState newCompilationState = new CompilationState(newNode, nextOptions);
                 currentStack.add(newCompilationState);
 
-                // Update longestCompilations
-                int newLength = newNode.root().description().length();
-                int oldLength = longestCompilations.peek().consistentGame.root().description().length();
-                if (newLength > oldLength)
-                    longestCompilations.clear();
-                if (newLength >= oldLength)
-                    longestCompilations.add(newCompilationState);
-
-
                 // Successful termination condition
                 if (newNode instanceof GameNode && newNode.isComplete()) {
                     Stack<CompilationState> out = new Stack<>();
@@ -135,6 +159,10 @@ public class FractionalCompiler {
                 }
 
             } catch (InternalException e) {
+
+                if (state.remainingOptions.size() == 1)
+                    excludedStates.add(state);
+
                 state.exceptions.add(e);
             }
         }
@@ -219,7 +247,7 @@ public class FractionalCompiler {
 //                System.out.println("trailingDescription:" + trailingDescription);
 //                System.out.println("option:" + option.description());
                 if (!trailingDescription.startsWith(option.description()))
-                    throw new MissmatchException("Wrong class");
+                    throw new MissmatchException("Wrong class " + option.description());
 
                 if (trailingDescription.length() > option.description().length()) {
                     char nextChar = trailingDescription.charAt(option.description().length());
@@ -251,14 +279,14 @@ public class FractionalCompiler {
             if (nodeCopy.isComplete()) {
                 assert nodeCopy.isRecursivelyComplete();
 
+                if (nodeCopy instanceof GameNode)
+                    return nodeCopy;
+
                 try {
                     nodeCopy.compile();
                 } catch (Exception e) {
                     throw new CompilationException(e.getMessage());
                 }
-
-                if (nodeCopy instanceof GameNode)
-                    return nodeCopy;
 
                 return nodeCopy.parent();
             }

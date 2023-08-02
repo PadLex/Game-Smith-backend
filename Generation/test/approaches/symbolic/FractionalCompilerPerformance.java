@@ -5,6 +5,7 @@ import compiler.Compiler;
 import main.grammar.Description;
 import main.grammar.Report;
 import main.options.UserSelections;
+import other.GameLoader;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -13,12 +14,11 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
-import static approaches.symbolic.FractionalCompiler.compileComplete;
-import static approaches.symbolic.FractionalCompiler.standardize;
+import static approaches.symbolic.FractionalCompiler.*;
 
 public class FractionalCompilerPerformance {
-    static void testLudiiLibrary(SymbolMap symbolMap, int limit) throws IOException {
-        List<String> skip = List.of("Kriegspiel (Chess).lud", "Throngs.lud", "Tai Shogi.lud", "Taikyoku Shogi.lud", "Yonin Seireigi.lud", "Yonin Shogi.lud"); // "To Kinegi tou Lagou.lud"
+    static void testLudiiLibrary(SymbolMap symbolMap, int start, int limit) throws IOException {
+        List<String> skip = List.of("Kriegspiel (Chess).lud", "Throngs.lud", "Tai Shogi.lud", "Taikyoku Shogi.lud", "Yonin Seireigi.lud", "Yonin Shogi.lud", "MensaSpiel.lud", "Kriegsspiel.lud", "Mini Wars.lud"); // "To Kinegi tou Lagou.lud"
 
         String gamesRoot = "./Common/res/lud/board";
         List<Path> paths = Files.walk(Paths.get(gamesRoot)).filter(Files::isRegularFile).filter(path -> path.toString().endsWith(".lud")).sorted().limit(limit).toList();
@@ -28,6 +28,10 @@ public class FractionalCompilerPerformance {
         int recompile = 0;
         int fromString = 0;
         for (Path path : paths) {
+            count++;
+            if (count < start)
+                continue;
+
             String gameStr = Files.readString(path);
 
             if (gameStr.contains("match")) {
@@ -40,7 +44,7 @@ public class FractionalCompilerPerformance {
                 continue;
             }
 
-            System.out.println("\nLoading " + path.getFileName() + " (" + (count + 1) + " of " + paths.size() + " games)");
+            System.out.println("\nLoading " + path.getFileName() + " (" + (count) + " of " + paths.size() + " games)");
 
             Description description = new Description(gameStr);
 
@@ -62,6 +66,7 @@ public class FractionalCompilerPerformance {
             GameNode rootNode;
             try {
                 rootNode = compileComplete(standardize(description.expanded()), symbolMap);
+                rootNode.compile();
             } catch (Exception e) {
                 System.out.println("Could not compile description " + path.getFileName());
                 System.out.println(e.getMessage());
@@ -93,11 +98,10 @@ public class FractionalCompilerPerformance {
             }
             final long endDescription = System.currentTimeMillis();
 
-            count += 1;
-            preCompilation += endPreCompilation - startPreCompilation;
-            compile += endCompile - endPreCompilation;
-            recompile += endRecompile - endCompile;
-            fromString += endDescription - endRecompile;
+            preCompilation += (int) (endPreCompilation - startPreCompilation);
+            compile += (int) (endCompile - endPreCompilation);
+            recompile += (int) (endRecompile - endCompile);
+            fromString += (int) (endDescription - endRecompile);
 
             System.out.println("pre-compile:  " + (endPreCompilation - startPreCompilation) + "ms");
             System.out.println("my-compile:   " + (endCompile - endPreCompilation) + "ms");
@@ -116,17 +120,15 @@ public class FractionalCompilerPerformance {
 
     public static void main(String[] args) throws IOException {
         CachedMap symbolMapper = new CachedMap();
-        testLudiiLibrary(symbolMapper, 500);
+        testLudiiLibrary(symbolMapper, 0, 2000);
         System.out.println("cache:" + symbolMapper.cachedQueries.size());
 
-//        testLudiiLibrary(symbolMapper, 100);
-//        String gameName = "Pagade Kayi Ata (Sixteen-handed)"; // TODO Throngs (memory error), There and Back, Pyrga, There and Back, Kriegspiel (Chess), Tai Shogi
+//        String gameName = "Choro (Acholi).lud"; // TODO Throngs (memory error), There and Back, Pyrga, There and Back, Kriegspiel (Chess), Tai Shogi
 //        Description description = new Description(Files.readString(Path.of("./Common/res/" + GameLoader.getFilePath(gameName))));
 //        Compiler.compile(description, new UserSelections(new ArrayList<>()), new Report(), false);
-//        System.out.println(description.expanded());
 //        System.out.println(standardize(description.expanded()));
 ////        printCallTree(description.callTree(), 0);
-//        GameNode gameNode = compileDescription(standardize(description.expanded()), new SymbolMapper());
+//        GameNode gameNode = compileComplete(standardize(description.expanded()), symbolMapper);
 //        System.out.println(gameNode.isRecursivelyComplete());
 
 //        System.out.println(standardize("0.0 hjbhjbjhj 9.70 9.09 (9.0) 8888.000  3.36000 3. (5.0} 9.2 or: 9 (game a  :     (g)"));
