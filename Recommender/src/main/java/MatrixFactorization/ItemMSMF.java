@@ -3,7 +3,6 @@ package MatrixFactorization;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 public class ItemMSMF extends MF {
                                             // Order of indices and columns of items is the same as the order of items in

@@ -62,8 +62,8 @@ public class MakeRecommendation {
             for (int j = 0; j < recs.length; j++) {
                 int finalJ = j;
                 boolean contains = IntStream.of(fav_games_index).anyMatch(x -> x== finalJ);
-                boolean contains2 = IntStream.of(User_Rec.get_indices_arr()).anyMatch(x -> x==finalJ);
-                if (recs[j] > biggest_val && !contains && !contains2) {
+//                boolean contains2 = IntStream.of(User_Rec.get_indices_arr()).anyMatch(x -> x==finalJ);
+                if (recs[j] > biggest_val && !contains) {
                     biggest_val = recs[j];
                     candidate = j;
                 }
