@@ -142,7 +142,7 @@ public class EvalGames
      *                   without weight if true, else it returns a size-1
 	 * @return the metric evaluations, output form is determined by arrayForm parameter
 	 */
-	public static double[] getEvaluationScores(Game game, List<Metric> metrics, ArrayList<Double> weights, String aiType, int numGames, double thinkingTimeEach, int maxTurns, boolean useDatabaseGames, boolean arrayForm)
+	public static double[] getEvaluationScores(Game game, List<Metric> metrics, ArrayList<Double> weights, String aiType, int numGames, double thinkingTimeEach, int maxTurns, boolean useDatabaseGames, boolean arrayForm, Report report)
 	{
 		final Evaluation evaluation = new Evaluation();
 		int numMetrics = metrics.size();
@@ -151,7 +151,9 @@ public class EvalGames
 			weights = new ArrayList<>();
 			for (int i = 0; i < numMetrics; i++) weights.add(1.0);
 		}
-		String scoresStringForm = evaluateGame(evaluation, new Report(), game, game.description().gameOptions().allOptionStrings(game.getOptions()), aiType, numGames, thinkingTimeEach, maxTurns, metrics, weights, useDatabaseGames);
+		Report usedReport = report;
+		if(usedReport == null) usedReport = new Report();
+		String scoresStringForm = evaluateGame(evaluation, usedReport, game, game.description().gameOptions().allOptionStrings(game.getOptions()), aiType, numGames, thinkingTimeEach, maxTurns, metrics, weights, useDatabaseGames);
         // the next 3 lines are to convert the output of the evaluateGame function to an array of doubles
 		String[] scoresArrayWithName = scoresStringForm.split(",");
 		String[] scoresList = Arrays.copyOfRange(scoresArrayWithName, 1, scoresArrayWithName.length);
@@ -226,7 +228,7 @@ public class EvalGames
 			weights.add(0.0); // SkillTrace
 			weights.add(0.0); // Systematicity
 		}
-		return getEvaluationScores(game, metrics, weights, "Random", 50, 3, 1000, true, false)[0];
+		return getEvaluationScores(game, metrics, weights, "Random", 50, 3, 1000, true, false, null)[0];
 	}
 
     //-------------------------------------------------------------------------
@@ -256,7 +258,7 @@ public class EvalGames
 			metrics.add(skillTrace);
 			metrics.add(new Systematicity());
 		}
-		return getEvaluationScores(game, metrics, null, "UCT", 10, 0.1, 100, true, false)[0];
+		return getEvaluationScores(game, metrics, null, "UCT", 10, 0.1, 100, true, false, null)[0];
 	}
 
     //-------------------------------------------------------------------------
@@ -473,6 +475,9 @@ public class EvalGames
 		// here the nearest neighbors are evaluated based on the compareMetrics value
 		double sum = 0;
 		int total = 0;
+		SkillTrace skillTrace = new SkillTrace();
+		skillTrace.setNumTrialsPerMatch(10);
+		skillTrace.setHardTimeLimit(30);
         List<Metric> metrics = new ArrayList<>();
         {
             metrics.add(new AdvantageP1());
@@ -482,20 +487,18 @@ public class EvalGames
             metrics.add(new Timeouts());
             metrics.add(new BoardCoverageDefault());
             metrics.add(new IdealDuration());
-            metrics.add(new BranchingFactor(MultiMetricFramework.MultiMetricValue.Average, Concept.BranchingFactorAverage));
-            metrics.add(new PieceNumber(MultiMetricFramework.MultiMetricValue.Average, Concept.PieceNumberAverage));
             metrics.add(new MoveDistance(MultiMetricFramework.MultiMetricValue.Average, Concept.MoveDistanceAverage));
             metrics.add(new PositionalRepetition());
+			metrics.add(skillTrace);
         }
-        double[] inputMetricScores = compareMetrics ? getEvaluationScores(game, metrics, null, "UCT", 10, 0.1, 100, true, true) : null;
+        double[] inputMetricScores = compareMetrics ? getEvaluationScores(game, metrics, null, "UCT", 10, 0.1, 50, true, true, report) : null;
 		for(int neighbor = 0; neighbor < k; neighbor++)
 		{
 			Double gameRating = gameRatings.get(nearestGames[neighbor]);
             if(compareMetrics)
             {
-				if(report != null) report.getReportMessageFunctions().printMessageInAnalysisPanel("Evaluating " + nearestGames[neighbor] + ", please wait...\n");
 				// comparison between the metric scores of the neighboring game and the input game
-                double[] neighborMetricScores = getEvaluationScores(GameLoader.loadGameFromName(nearestGames[neighbor] + ".lud"), metrics, null, "UCT", 10, 0.1, 100, true, true);
+                double[] neighborMetricScores = getEvaluationScores(GameLoader.loadGameFromName(nearestGames[neighbor] + ".lud"), metrics, null, "UCT", 10, 0.1, 100, true, true, report);
                 sum += meanSquaredError(inputMetricScores, neighborMetricScores);
             }
             else
@@ -972,7 +975,7 @@ public class EvalGames
 		final boolean useDatabaseGames = argParse.getValueBool("--useDatabaseGames");
 
 		evaluateAllGames(new Report(), numberTrials, maxTurns, thinkTime, AIName, useDatabaseGames);*/
-		Game tempGame = GameLoader.loadGameFromName("Tic-Tac-Toe.lud");
+		Game tempGame = GameLoader.loadGameFromName("Mu Torere.lud");
         /*Systematicity systematicity = new Systematicity();
         systematicity.setMaxIterationMultiplier(2.0);
         systematicity.setNumMatches(100);
