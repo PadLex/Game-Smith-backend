@@ -53,9 +53,18 @@ public class AutocompleteEndpoint extends CachedEndpoint {
                 } else if (option instanceof EndOfClauseNode) {
                     if (node.root().description().length() + 1 < standardInput.length()) continue;
                     completions.addAll(consecutiveClosingBrackets(node));
+                } else if (option instanceof ArrayNode) {
+                    String description = option.root().description();
+                    if (description.length() < standardInput.length()) continue;
+
+                    String label = description.substring(standardInput.length(), description.length() - 1);
+//                    System.out.println(label + ", " + option.symbol().nesting());
+
+                    completions.add(label + "{".repeat(option.symbol().nesting()));
                 } else {
                     String description = option.root().description();
                     if (description.length() < standardInput.length()) continue;
+
                     completions.add(description.substring(standardInput.length()));
                 }
             }
@@ -80,10 +89,6 @@ public class AutocompleteEndpoint extends CachedEndpoint {
                     onlyOption = false;
                 }
             }
-
-//            System.out.println("end:" + (endOfClauseNode != null));
-//            System.out.println("only:" + (onlyOption));
-//            System.out.println(brackets);
 
             if (endOfClauseNode == null)
                 break;

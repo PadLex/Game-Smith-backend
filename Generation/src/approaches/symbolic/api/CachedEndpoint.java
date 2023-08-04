@@ -20,7 +20,7 @@ public abstract class CachedEndpoint {
 
     void updateCache(String input) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter("cached-log.txt", true))) {
-            writer.write("Input:\n" + input);
+            writer.write(this.getClass().getName() + " - Input:\n" + input);
             writer.newLine(); // Add a newline after each log message (optional)
         } catch (IOException e) {}
 
@@ -58,14 +58,14 @@ public abstract class CachedEndpoint {
                 response = respond();
             } catch (Exception e) {
                 try (BufferedWriter writer = new BufferedWriter(new FileWriter("cached-log.txt", true))) {
-                    writer.write("Error:\n" + e.getMessage());
+                    writer.write(this.getClass().getName() + " - Error:\n" + e.getMessage());
                     writer.newLine(); // Add a newline after each log message (optional)
                 } catch (IOException ie) {}
                 throw e;
             }
 //
             try (BufferedWriter writer = new BufferedWriter(new FileWriter("cached-log.txt", true))) {
-                writer.write("Output:\n" + respond());
+                writer.write(this.getClass().getName() + " - Output:\n" + respond());
                 writer.newLine(); // Add a newline after each log message (optional)
             } catch (IOException e) {}
             // Output
