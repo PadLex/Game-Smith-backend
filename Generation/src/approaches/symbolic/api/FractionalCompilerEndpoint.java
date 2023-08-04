@@ -3,7 +3,7 @@ package approaches.symbolic.api;
 import approaches.symbolic.nodes.GameNode;
 import supplementary.experiments.eval.EvalGames;
 
-import java.util.Stack;
+import java.util.List;
 
 import static approaches.symbolic.FractionalCompiler.*;
 
@@ -22,11 +22,12 @@ public class FractionalCompilerEndpoint extends CachedEndpoint {
 
     @Override
     String respond() {
-        Stack<CompilationState> partialCompilation = compileFraction(standardize(rawInput), symbolMap);
-        GameNode gameNode = partialCompilation.peek().consistentGame.root();
+        CompilationCheckpoint partialCompilation = compileFraction(standardize(rawInput), symbolMap);
+//        partialCompilation.forEach(s -> System.out.println(s.consistentGame.root().description()));
+        GameNode gameNode = partialCompilation.longest.get(0).consistentGame.root();
         String compilingPortion = gameNode.description();
-        boolean compiles = partialCompilation.peek().exceptions.isEmpty();
-        return (compiles ? ("1|" + EvalGames.defaultEvaluationFast(gameNode.compile())).replace('.', 'k') : "0|0") +
+        boolean compiles = partialCompilation.longest.get(0).exceptions.isEmpty();
+        return (compiles ? ("1|" + EvalGames.defaultEvaluationFast(gameNode.compile())) : "0|0") +
                 "|" + destandardize(rawInput, compilingPortion);
     }
 }

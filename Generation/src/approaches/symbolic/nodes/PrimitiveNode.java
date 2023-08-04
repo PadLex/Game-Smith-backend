@@ -18,7 +18,7 @@ public class PrimitiveNode extends GenerationNode {
     public enum PrimitiveType {INT, FLOAT, DIM, STRING, BOOLEAN}
     private Object value;
 
-    PrimitiveNode(MappedSymbol symbol, GenerationNode parent) {
+    public PrimitiveNode(MappedSymbol symbol, GenerationNode parent) {
         super(symbol, parent);
     }
 
@@ -75,9 +75,9 @@ public class PrimitiveNode extends GenerationNode {
     }
 
     @Override
-    public String toString() {
+    public String buildString() {
         if (value == null)
-            return getType() + "?";
+            return "NEW_" + getType() + "?";
 
         if (value instanceof String)
             return "\"" + value + "\"";
@@ -108,6 +108,10 @@ public class PrimitiveNode extends GenerationNode {
 
     public PrimitiveType getType() {
         return typeOf(symbol.path());
+    }
+
+    public Object value() {
+        return value;
     }
 
     public static PrimitiveType typeOf(String path) {

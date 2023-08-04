@@ -28,7 +28,7 @@ public class EmptyNode extends GenerationNode {
     }
 
     @Override
-    public String toString() {
+    public String buildString() {
         return "NULL";
     }
 

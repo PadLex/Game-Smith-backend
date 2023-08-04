@@ -12,7 +12,7 @@ import java.util.List;
  * Node representing a most ludemes. This is usually a non-terminal node.
  */
 public class ClassNode extends GenerationNode {
-    ClassNode(MappedSymbol symbol, GenerationNode parent) {
+    public ClassNode(MappedSymbol symbol, GenerationNode parent) {
         super(symbol, parent);
         assert !symbol.path().equals("game.Game");
     }
@@ -36,7 +36,7 @@ public class ClassNode extends GenerationNode {
             }catch (IllegalArgumentException | IllegalAccessException | InstantiationException | InvocationTargetException ignored) {}
         }
 
-        throw new RuntimeException("Failed to compile: " + symbol);
+        throw new RuntimeException("Failed to compile: " + symbol + " with parameters " + arguments);
     }
 
     public List<GenerationNode> nextPossibleParameters(SymbolMap symbolMap) {
@@ -46,7 +46,7 @@ public class ClassNode extends GenerationNode {
     }
 
     @Override
-    public String toString() {
+    public String buildString() {
         return "(" + symbol.path() + "; " + String.join(" ", parameterSet.stream().map(GenerationNode::toString).toList()) + ")";
     }
 

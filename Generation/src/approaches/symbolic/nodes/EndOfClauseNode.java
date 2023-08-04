@@ -26,9 +26,9 @@ public class EndOfClauseNode extends GenerationNode {
     public boolean isComplete() {
         return true;
     }
-    
+
     @Override
-    public String toString() {
+    public String buildString() {
         return "END";
     }
 
