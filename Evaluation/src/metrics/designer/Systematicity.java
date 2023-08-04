@@ -27,6 +27,8 @@ public class Systematicity extends Metric
 
     private double maxIterationMultiplier = 2;
 
+    private int hardTimeLimit = 30;
+
     public Systematicity()
     {
         super(
@@ -62,6 +64,7 @@ public class Systematicity extends Metric
         game.start(context);
 
         double averageSmartPlayerRanking = 0.0;
+        long startTime = System.currentTimeMillis();
         for(int match = 0; match < numMatches; match++)
         {
             game.start(context);
@@ -76,6 +79,7 @@ public class Systematicity extends Metric
                 model.startNewStep(context, ais, -1.0, (int) maxIterationMultiplier * game.moves(context).count(), -1, 0.0);
             }
             averageSmartPlayerRanking += RankUtils.agentUtilities(context)[smartPlayerIndex];
+            if(System.currentTimeMillis() > (startTime + hardTimeLimit * 1000)) break;
         }
         averageSmartPlayerRanking /= numMatches;
 

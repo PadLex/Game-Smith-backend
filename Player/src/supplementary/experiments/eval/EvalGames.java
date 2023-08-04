@@ -12,6 +12,7 @@ import metrics.designer.IdealDuration;
 import metrics.designer.SkillTrace;
 import metrics.designer.Systematicity;
 import metrics.multiple.MultiMetricFramework;
+import metrics.multiple.metrics.BoardSitesOccupied;
 import metrics.multiple.metrics.BranchingFactor;
 import metrics.multiple.metrics.MoveDistance;
 import metrics.multiple.metrics.PieceNumber;
@@ -144,7 +145,7 @@ public class EvalGames
      *                   without weight if true, else it returns a size-1
 	 * @return the metric evaluations, output form is determined by arrayForm parameter
 	 */
-	public static double[] getEvaluationScores(Game game, List<Metric> metrics, ArrayList<Double> weights, String aiType, int numGames, double thinkingTimeEach, int maxTurns, boolean useDatabaseGames, boolean arrayForm)
+	public static double[] getEvaluationScores(Game game, List<Metric> metrics, ArrayList<Double> weights, String aiType, int numGames, double thinkingTimeEach, int maxTurns, boolean useDatabaseGames, boolean arrayForm, Report report)
 	{
 		final Evaluation evaluation = new Evaluation();
 		int numMetrics = metrics.size();
@@ -153,11 +154,17 @@ public class EvalGames
 			weights = new ArrayList<>();
 			for (int i = 0; i < numMetrics; i++) weights.add(1.0);
 		}
-		String scoresStringForm = evaluateGame(evaluation, new Report(), game, game.description().gameOptions().allOptionStrings(game.getOptions()), aiType, numGames, thinkingTimeEach, maxTurns, metrics, weights, useDatabaseGames);
+		Report usedReport = report;
+		if(usedReport == null) usedReport = new Report();
+		String scoresStringForm = evaluateGame(evaluation, usedReport, game, game.description().gameOptions().allOptionStrings(game.getOptions()), aiType, numGames, thinkingTimeEach, maxTurns, metrics, weights, useDatabaseGames);
         // the next 3 lines are to convert the output of the evaluateGame function to an array of doubles
 		String[] scoresArrayWithName = scoresStringForm.split(",");
-		String[] scoresList = Arrays.copyOfRange(scoresArrayWithName, 1, scoresArrayWithName.length);
-		double[] scores = Arrays.stream(scoresList).mapToDouble(Double::parseDouble).toArray();
+		double[] scores = new double[scoresArrayWithName.length - 1];
+		for(int i = 1; i < scoresArrayWithName.length; i++)
+		{
+			if(scoresArrayWithName[i].equals("NULL")) scores[i - 1] = 0;
+			else scores[i - 1] = Double.parseDouble(scoresArrayWithName[i]);
+		}
 
 		// the next part just deals with outputting the scores that were weighted with 0 as 0 in the output array
 		if(arrayForm)
@@ -228,7 +235,7 @@ public class EvalGames
 			weights.add(0.0); // SkillTrace
 			weights.add(0.0); // Systematicity
 		}
-		return getEvaluationScores(game, metrics, weights, "Random", 50, 3, 1000, true, false)[0];
+		return getEvaluationScores(game, metrics, weights, "Random", 50, 3, 1000, true, false, null)[0];
 	}
 
     //-------------------------------------------------------------------------
@@ -259,7 +266,7 @@ public class EvalGames
 			metrics.add(skillTrace);
 			metrics.add(new Systematicity());
 		}
-		return getEvaluationScores(game, metrics, null, "UCT", 10, 0.1, 100, true, false)[0];
+		return getEvaluationScores(game, metrics, null, "UCT", 10, 0.1, 100, true, false, null)[0];
 	}
 
     //-------------------------------------------------------------------------
@@ -279,15 +286,22 @@ public class EvalGames
 
     //-------------------------------------------------------------------------
 
-    private static void loadDB()
+    private static void loadDB(boolean fromCode)
     {
         gameConceptMatrix = new ArrayList<>();
         games = new ArrayList<>();
 		gameRatings = new HashMap<>();
+		String path1 = "../Common/res/recs/game_concept_matrix_allconcepts_new.csv";
+		String path2 = "../Common/res/recs/RatingGameMatrix.csv";
+		if(fromCode)
+		{
+			path1 = "Common/res/recs/game_concept_matrix_allconcepts_new.csv";
+			path2 = "Common/res/recs/RatingGameMatrix.csv";
+		}
         try
         {
             // what is attempted here is to load the game concepts correctly into a form that can be readily accessed and used in the recommendScore method
-            FileReader fr = new FileReader("../Common/res/recs/game_concept_matrix_allconcepts_new.csv");
+            FileReader fr = new FileReader(path1);
             BufferedReader br = new BufferedReader(fr);
             String line;
             int lineCount = 0;
@@ -315,7 +329,7 @@ public class EvalGames
 			br.close();
 			fr.close();
 
-			fr = new FileReader("../Common/res/recs/RatingGameMatrix.csv");
+			fr = new FileReader(path2);
 			br = new BufferedReader(fr);
 			String[] gameNames = br.readLine().split(",");
 			String[] gameScores = br.readLine().split(",");
@@ -392,7 +406,7 @@ public class EvalGames
     {
         if(!hasRun)
         {
-            loadDB();
+            loadDB(report == null);
             hasRun = true;
         }
 		// if the desired number of nearest neighbors is more than the total number of
@@ -485,20 +499,18 @@ public class EvalGames
             metrics.add(new Timeouts());
             metrics.add(new BoardCoverageDefault());
             metrics.add(new IdealDuration());
-            metrics.add(new BranchingFactor(MultiMetricFramework.MultiMetricValue.Average, Concept.BranchingFactorAverage));
-            metrics.add(new PieceNumber(MultiMetricFramework.MultiMetricValue.Average, Concept.PieceNumberAverage));
             metrics.add(new MoveDistance(MultiMetricFramework.MultiMetricValue.Average, Concept.MoveDistanceAverage));
             metrics.add(new PositionalRepetition());
+			metrics.add(new BoardSitesOccupied(MultiMetricFramework.MultiMetricValue.Average, Concept.BoardSitesOccupiedAverage));
         }
-        double[] inputMetricScores = compareMetrics ? getEvaluationScores(game, metrics, null, "UCT", 10, 0.1, 100, true, true) : null;
+        double[] inputMetricScores = compareMetrics ? getEvaluationScores(game, metrics, null, "UCT", 10, 0.1, 30, true, true, report) : null;
 		for(int neighbor = 0; neighbor < k; neighbor++)
 		{
 			Double gameRating = gameRatings.get(nearestGames[neighbor]);
             if(compareMetrics)
             {
-				if(report != null) report.getReportMessageFunctions().printMessageInAnalysisPanel("Evaluating " + nearestGames[neighbor] + ", please wait...\n");
 				// comparison between the metric scores of the neighboring game and the input game
-                double[] neighborMetricScores = getEvaluationScores(GameLoader.loadGameFromName(nearestGames[neighbor] + ".lud"), metrics, null, "UCT", 10, 0.1, 100, true, true);
+                double[] neighborMetricScores = getEvaluationScores(GameLoader.loadGameFromName(nearestGames[neighbor] + ".lud"), metrics, null, "UCT", 10, 0.1, 30, true, true, report);
                 sum += meanSquaredError(inputMetricScores, neighborMetricScores);
             }
             else
@@ -668,7 +680,7 @@ public class EvalGames
 			}
 		}
 		
-		final String message = "Please don't touch anything until complete! \nGenerating trials: \n";
+		final String message = "Evaluating " + game.name() + ". \nPlease don't touch anything until complete! \nGenerating trials: \n";
 		try
 		{
 			report.getReportMessageFunctions().printMessageInAnalysisPanel(message);
@@ -975,7 +987,31 @@ public class EvalGames
 		final boolean useDatabaseGames = argParse.getValueBool("--useDatabaseGames");
 
 		evaluateAllGames(new Report(), numberTrials, maxTurns, thinkTime, AIName, useDatabaseGames);*/
-		Game tempGame = GameLoader.loadGameFromName("Tic-Tac-Toe.lud");
+		Game[] tempGame =
+				{
+						GameLoader.loadGameFromName("Mu Torere.lud"),
+						GameLoader.loadGameFromName("Tic-Tac-Toe.lud"),
+						GameLoader.loadGameFromName("Three Men's Morris.lud"),
+						GameLoader.loadGameFromName("Sim.lud"),
+						GameLoader.loadGameFromName("Tablut.lud"),
+						GameLoader.loadGameFromName("Reversi.lud"),
+						GameLoader.loadGameFromName("Breakthrough.lud"),
+						GameLoader.loadGameFromName("Seega.lud"),
+						GameLoader.loadGameFromName("Lines of Action.lud"),
+						GameLoader.loadGameFromName("Quantum Leap.lud"),
+						GameLoader.loadGameFromName("Connect Four.lud"),
+						GameLoader.loadGameFromName("Yavalath.lud"),
+						GameLoader.loadGameFromName("Fanorona.lud"),
+						GameLoader.loadGameFromName("Nine Men's Morris.lud"),
+						GameLoader.loadGameFromName("Chess.lud"),
+						GameLoader.loadGameFromName("Gomoku.lud"),
+						GameLoader.loadGameFromName("Havannah.lud"),
+						GameLoader.loadGameFromName("Amazons.lud"),
+						GameLoader.loadGameFromName("Gonnect.lud"),
+						GameLoader.loadGameFromName("Hex.lud"),
+						GameLoader.loadGameFromName("Dots and Boxes.lud"),
+						GameLoader.loadGameFromName("Go.lud"),
+				};
         /*Systematicity systematicity = new Systematicity();
         systematicity.setMaxIterationMultiplier(2.0);
         systematicity.setNumMatches(100);
@@ -989,7 +1025,7 @@ public class EvalGames
         }
         System.out.println(getEvaluationScores(tempGame, metrics, weights, "Random", 50, 3, 1000, true, false)[0]);*/
 //		long startTime = System.currentTimeMillis();
-		System.out.println(defaultEvaluationFast(tempGame));
+//		System.out.println(defaultEvaluationFast(tempGame));
 //		long endTimeFast = System.currentTimeMillis();
 //		System.out.println("Fast evaluation time: " + ((endTimeFast - startTime) / 1000) + " seconds");
 //		System.out.println(defaultEvaluationSlow(tempGame));
@@ -997,5 +1033,11 @@ public class EvalGames
 //		System.out.println("Slow evaluation time: " + ((endTimeSlow - endTimeFast) / 1000) + " seconds");
 //		System.out.println("The average rating of nearest games with BGG entries is " + recommendScore(tempGame, 5, false, true));
 //		calculateGameScores();
+		for(int i = 0; i < tempGame.length; i++)
+		{
+			System.out.println("===========================================================================");
+			System.out.println("Recommending score for: " + tempGame[i].name());
+			System.out.println(recommendScore(tempGame[i], 3, false, true, null));
+		}
 	}
 }

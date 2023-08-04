@@ -63,7 +63,7 @@ public class AdvantageP1 extends Metric
 			// finishes 1st, or "wins", in the case of multiplayer
 		}
 
-		return Double.valueOf(1.0 - numPlayers * Math.abs((1.0 / numPlayers) - (p1Wins / trials.length))); // the further away from the ideal win rate p1Wins / trials.length is, the worse the score will be
+		return Double.valueOf(Math.max(1.0 - numPlayers * Math.abs((1.0 / numPlayers) - (p1Wins / trials.length)), 0)); // the further away from the ideal win rate p1Wins / trials.length is, the worse the score will be
 	}
 
 	//-------------------------------------------------------------------------
