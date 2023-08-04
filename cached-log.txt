@@ -1,0 +1,4 @@
+Input:
+9021930iisadkjjnksdwqiioi((game
+Output:
+

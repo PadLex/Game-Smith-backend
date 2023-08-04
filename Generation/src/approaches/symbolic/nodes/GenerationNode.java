@@ -233,12 +233,7 @@ public abstract class GenerationNode {
 
     abstract String buildString();
 
-    String buildDescription() {
-        if (symbol.label != null)
-            return symbol.label + ":" + this;
-
-        return this.toString();
-    }
+    abstract String buildDescription();
 
     public GameNode root() {
         GenerationNode node = this;

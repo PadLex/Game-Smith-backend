@@ -55,7 +55,6 @@ public class FractionalCompiler {
         int secondLongestLength = 0;
         public List<CompilationState> longest = new ArrayList<>();
         public List<CompilationState> secondLongest = new ArrayList<>();
-        public Set<String> previouslySeen = new HashSet<>();
 
         public CompilationCheckpoint() {}
         public CompilationCheckpoint(GenerationNode node) {
@@ -68,16 +67,24 @@ public class FractionalCompiler {
             this.secondLongestLength = checkpoint.secondLongestLength;
             this.longest = new ArrayList<>(checkpoint.longest);
             this.secondLongest = new ArrayList<>(checkpoint.secondLongest);
-            this.previouslySeen = checkpoint.previouslySeen;
         }
 
         public void consider(CompilationState state) {
 //            String symbolTree = state.consistentGame.root().toString();
-//            if (previouslySeen.contains(symbolTree))
+//            System.out.println("symbolTree:" + symbolTree);
+
+//            if (longestIndex.get(symbolTree) != null) {
+////                System.out.println("excluded:" + symbolTree);
+//                longest.set(longestIndex.get(symbolTree), state);
 //                return;
-//            previouslySeen.add(symbolTree);
+//            } else if (secondLongestIndex.get(symbolTree) != null) {
+////                System.out.println("excluded:" + symbolTree);
+//                secondLongest.set(secondLongestIndex.get(symbolTree), state);
+//                return;
+//            }
 
             int length = state.consistentGame.root().description().length();
+
 //            System.out.println("con: " + length + " - " + state.consistentGame.root().description());
 //            System.out.println("before: " + longestLength + ", " + secondLongestLength);
             if (length > longestLength) {
@@ -94,10 +101,12 @@ public class FractionalCompiler {
 
 //            System.out.println("after: " + longestLength + ", " + secondLongestLength);
 
-            if (length == longestLength)
+            if (length == longestLength) {
                 longest.add(state);
-            else if (length == secondLongestLength)
+            }
+            else if (length == secondLongestLength) {
                 secondLongest.add(state);
+            }
         }
 
         @Override
@@ -168,18 +177,30 @@ public class FractionalCompiler {
 
         // The stack of all the consistent games found so far
         Stack<CompilationState> currentStack = new Stack<>();
+        HashMap<String, CompilationState> longest = new HashMap<>();
+        HashMap<String, CompilationState> secondLongest = new HashMap<>();
         for (CompilationState state: previousCheckpoint.secondLongest) {
             state.consistentGame.stripTrailingEmptyNodes();
-            List<GenerationNode> nextOptions = state.consistentGame.nextPossibleParameters(symbolMap, null, true, false);
-            currentStack.add(new CompilationState(state.consistentGame, nextOptions));
+            secondLongest.put(state.consistentGame.root().toString(), state);
         }
         for (CompilationState state: previousCheckpoint.longest) {
             state.consistentGame.stripTrailingEmptyNodes();
             List<GenerationNode> nextOptions = state.consistentGame.nextPossibleParameters(symbolMap, null, true, false);
-            currentStack.add(new CompilationState(state.consistentGame, nextOptions));
+            longest.put(state.consistentGame.root().toString(), state);
         }
 
-        CompilationCheckpoint nextCheckpoint = new CompilationCheckpoint(previousCheckpoint);
+        for (CompilationState state: secondLongest.values()) {
+            List<GenerationNode> nextOptions = state.consistentGame.nextPossibleParameters(symbolMap, null, true, false);
+            currentStack.push(new CompilationState(state.consistentGame, nextOptions));
+        }
+
+        for (CompilationState state: longest.values()) {
+            List<GenerationNode> nextOptions = state.consistentGame.nextPossibleParameters(symbolMap, null, true, false);
+            currentStack.push(new CompilationState(state.consistentGame, nextOptions));
+        }
+
+
+            CompilationCheckpoint nextCheckpoint = new CompilationCheckpoint(previousCheckpoint);
 
 
         //(game "Tablan" (players 2) (equipment {(board (rectangle 4 12) {(track "Track1" "0,E,N1,W,N1,E,N1,W" P1 directed:True) (track "Track2" "47,W,S1,E,S1,W,S1,E" P2 directed:True)} use:Vertex) (piece "Stick" Each (if (and (not (is In (from) (sites Next "Home"))) (!= 0 (mapEntry "Throw" (count Pips)))) (or (if (not (= 1 (var))) (move (from (from) if:(if (=

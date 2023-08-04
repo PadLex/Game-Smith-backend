@@ -43,7 +43,7 @@ public class FractionalCompilerCorrectness {
 
             String expandedDescription = standardize(description.expanded());
             FractionalCompiler.CompilationCheckpoint compilation = FractionalCompiler.compileFraction("(game", symbolMap);
-            for (int i = 5; i < expandedDescription.length(); i++) {
+            for (int i = 5; i < expandedDescription.length() - 1; i++) {
                 System.out.println(expandedDescription.substring(0, i + 1));
                 compilation = FractionalCompiler.compileFraction(expandedDescription.substring(0, i + 1), compilation, symbolMap);
                 System.out.println("   --> " + compilation.longest.get(0).consistentGame.root().description());

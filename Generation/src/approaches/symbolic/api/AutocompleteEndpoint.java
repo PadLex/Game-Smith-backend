@@ -10,12 +10,7 @@ import java.util.*;
 import static approaches.symbolic.FractionalCompiler.standardize;
 
 
-public class AutocompleteEndpoint {
-
-    String currentStandardInput;
-    FractionalCompiler.CompilationCheckpoint previousCompilation;
-    FractionalCompiler.CompilationCheckpoint currentCompilation;
-    SymbolMap symbolMap;
+public class AutocompleteEndpoint extends CachedEndpoint {
 
     // Compiles the game as far as it goes and returns all completions that start with the input's tail
     Collection<String> autocomplete(String standardInput) {
@@ -26,15 +21,13 @@ public class AutocompleteEndpoint {
 
         // Assuming we are starting a new ludeme
 //        System.out.println(currentCompilation.longest.size() + " + " + currentCompilation.secondLongest.size());
-        for (FractionalCompiler.CompilationState state: currentCompilation) {
+        for (FractionalCompiler.CompilationState state: cachedCompilation) {
             GenerationNode node = state.consistentGame;
             String tail = standardInput.substring(node.root().description().length());
 
             for (GenerationNode option: compatibleOptions(node, tail)) {
-                String completion;
-
                 if (option instanceof PrimitiveNode) {
-                    completion = option.description();
+                    String completion = option.description();
 
                     boolean addSpace = !standardInput.endsWith(" ");
                     if (option.symbol().label != null) {
@@ -55,18 +48,66 @@ public class AutocompleteEndpoint {
 
                     if (addSpace && !(option instanceof ContinuedPrimitive))
                         completion = " " + completion;
-                }
-                else {
+
+                    completions.add(completion);
+                } else if (option instanceof EndOfClauseNode) {
+                    if (node.root().description().length() + 1 < standardInput.length()) continue;
+                    completions.addAll(consecutiveClosingBrackets(node));
+                } else {
                     String description = option.root().description();
                     if (description.length() < standardInput.length()) continue;
-                    completion = description.substring(standardInput.length());
+                    completions.add(description.substring(standardInput.length()));
                 }
-
-                completions.add(completion);
             }
         }
 
         return completions;
+    }
+
+    public List<String> consecutiveClosingBrackets(GenerationNode node) {
+        node = node.copyUp();
+
+        List<String> brackets = new ArrayList<>(List.of(""));
+        int depth = 0;
+        while (node != null) {
+            EndOfClauseNode endOfClauseNode = null;
+            boolean onlyOption = true;
+            for (GenerationNode option: node.nextPossibleParameters(symbolMap, null, false, true)) {
+                if (option instanceof EndOfClauseNode endNode) {
+                    endOfClauseNode = endNode;
+                    break;
+                } else {
+                    onlyOption = false;
+                }
+            }
+
+//            System.out.println("end:" + (endOfClauseNode != null));
+//            System.out.println("only:" + (onlyOption));
+//            System.out.println(brackets);
+
+            if (endOfClauseNode == null)
+                break;
+
+            char bracket = node instanceof ArrayNode? '}' : ')';
+
+            List<String> newBrackets = new ArrayList<>();
+
+            for (String old: brackets) {
+                if (old.length() == depth)
+                    newBrackets.add(old + bracket);
+
+                if (old.length() != depth || !onlyOption && depth>0)
+                    newBrackets.add(old);
+            }
+
+            // Update outer variables
+            brackets = newBrackets;
+            node.addParameter(endOfClauseNode);
+            node = node.parent();
+            depth++;
+        }
+
+        return brackets;
     }
 
     // TODO make it consider possibilities bellow the top of the stack
@@ -165,7 +206,6 @@ public class AutocompleteEndpoint {
                 } catch (NumberFormatException ignored) {}
             }
             case STRING -> {
-//                System.out.println("string value:" + value);
                 if (value.startsWith("\"") && value.substring(1).indexOf('"') == -1) // Todo accept \" if we ever need to support metadata
                     return new ContinuedPrimitive(primitiveOption);
             }
@@ -178,9 +218,11 @@ public class AutocompleteEndpoint {
         return null;
     }
 
-    String respond(String standardInput) {
+    @Override
+    String respond() {
         StringBuilder sb = new StringBuilder();
         HashSet<String> completions = new HashSet<>();
+        String standardInput = standardize(rawInput);
 
         for (String completion : autocomplete(standardInput)) {
             //assert option.root().description().startsWith(standardInput);
@@ -194,49 +236,6 @@ public class AutocompleteEndpoint {
         if (sb.length() > 2)
             sb.delete(sb.length() - 2, sb.length());
         return sb.toString();
-    }
-
-    void updateCache(String standardInput) {
-//        // Reset the cache if the input is not a continuation of the previous input
-//        if (currentStandardInput != null && !standardInput.startsWith(currentStandardInput)) {
-//            previousCompilation = null;
-//            currentCompilation = null;
-//        }
-//        // Initialize the cache if it is empty
-//        if (currentCompilation == null) {
-//            currentCompilation = FractionalCompiler.compileFraction(standardInput, symbolMap);
-//            if (standardInput.length() > 5)
-//                previousCompilation = FractionalCompiler.compileFraction(standardInput.substring(0, standardInput.lastIndexOf(' ')), symbolMap);
-//            else
-//                previousCompilation = null;
-//        } else {
-//            Stack<FractionalCompiler.CompilationState> newCompilation = FractionalCompiler.compileFraction(standardInput, currentCompilation, symbolMap);
-//            if (!newCompilation.peek().consistentGame.description().equals(currentCompilation.peek().consistentGame.root().description())) {
-//                previousCompilation = currentCompilation;
-//                currentCompilation = newCompilation;
-//            }
-//        }
-
-        currentCompilation = FractionalCompiler.compileFraction(standardInput, symbolMap);
-//        if (standardInput.length() > 5)
-//            previousCompilation = FractionalCompiler.compileFraction(standardInput.substring(0, standardInput.lastIndexOf(' ')), symbolMap);
-    }
-
-    void start() {
-        Scanner sc = new Scanner(System.in);
-
-        symbolMap = new CachedMap();
-
-        System.out.println("Ready");
-
-        while (sc.hasNextLine()) {
-            // Input
-            String standardInput = standardize(sc.nextLine().replace("\\n", "\n"));
-            updateCache(standardInput);
-            // Output
-            System.out.println(respond(standardInput).replace("\n", "\\n"));
-        }
-        sc.close();
     }
 //FractionalCompiler.compileFraction(standardInput.substring(0, standardInput.lastIndexOf(' ')), symbolMap)
     public static void main(String[] args) {
@@ -258,9 +257,9 @@ public class AutocompleteEndpoint {
             return super.toString();
         }
 
-//        @Override
-//        public String description() {
-//            return super.description().replace("NEW_", "CONTINUED_");
-//        }
+        @Override
+        public String description() {
+            return super.description().replace("NEW_", "CONTINUED_");
+        }
     }
 }

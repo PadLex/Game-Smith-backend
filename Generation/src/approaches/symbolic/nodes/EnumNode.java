@@ -38,6 +38,15 @@ public class EnumNode extends GenerationNode {
 
     @Override
     public String buildString() {
-        return symbol.grammarLabel();
+        return buildDescription();
+    }
+
+    @Override
+    public String buildDescription() {
+        String label = "";
+        if (symbol.label != null)
+            label = symbol.label + ":";
+
+        return label + symbol.grammarLabel();
     }
 }

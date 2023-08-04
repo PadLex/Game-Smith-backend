@@ -76,6 +76,19 @@ public class PrimitiveNode extends GenerationNode {
 
     @Override
     public String buildString() {
+        return buildDescription();
+    }
+
+    @Override
+    public String buildDescription() {
+        String label = "";
+        if (symbol.label != null)
+            label = symbol.label + ":";
+
+        return label + strValue();
+    }
+
+    String strValue() {
         if (value == null)
             return "NEW_" + getType() + "?";
 
