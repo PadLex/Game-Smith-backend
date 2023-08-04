@@ -57,10 +57,10 @@ public class AutocompleteEndpoint extends CachedEndpoint {
                     String description = option.root().description();
                     if (description.length() < standardInput.length()) continue;
 
-                    String label = description.substring(standardInput.length(), description.length() - 1);
+                    String label = description.substring(standardInput.length());
 //                    System.out.println(label + ", " + option.symbol().nesting());
 
-                    completions.add(label + "{".repeat(option.symbol().nesting()));
+                    completions.add(label + "{".repeat(option.symbol().nesting()-1));
                 } else {
                     String description = option.root().description();
                     if (description.length() < standardInput.length()) continue;
@@ -232,7 +232,7 @@ public class AutocompleteEndpoint extends CachedEndpoint {
         for (String completion : autocomplete(standardInput)) {
             //assert option.root().description().startsWith(standardInput);
 
-            if (!completions.contains(completion)) {
+            if (!completions.contains(completion) && !completion.isEmpty()) {
                 completions.add(completion);
                 sb.append(completion).append("|").append("TODO").append("||");
             }
