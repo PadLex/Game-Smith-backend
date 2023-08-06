@@ -1033,11 +1033,22 @@ public class EvalGames
 //		System.out.println("Slow evaluation time: " + ((endTimeSlow - endTimeFast) / 1000) + " seconds");
 //		System.out.println("The average rating of nearest games with BGG entries is " + recommendScore(tempGame, 5, false, true));
 //		calculateGameScores();
-		for(int i = 0; i < tempGame.length; i++)
+		/*for(int i = 0; i < tempGame.length; i++)
 		{
 			System.out.println("===========================================================================");
 			System.out.println("Recommending score for: " + tempGame[i].name());
 			System.out.println(recommendScore(tempGame[i], 3, false, true, null));
-		}
+		}*/
+		/*Systematicity systematicity = new Systematicity();
+		systematicity.setHardTimeLimit(1000);
+		systematicity.setNumMatches(50);
+		systematicity.setMaxIterationMultiplier(4);
+		List<Metric> metrics = new ArrayList<>();
+		metrics.add(new Systematicity());
+		for(int i = 0; i < tempGame.length; i++)
+		{
+			System.out.println("===========================================================================");
+			System.out.println("Systematicity score for " + tempGame[i].name() + " is " + getEvaluationScores(tempGame[i], metrics, null, "Random", 30, 5, 1000, true, false, null)[0]);
+		}*/
 	}
 }

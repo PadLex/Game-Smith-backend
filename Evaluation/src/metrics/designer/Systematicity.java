@@ -95,4 +95,9 @@ public class Systematicity extends Metric
     {
         this.maxIterationMultiplier = maxIterationMultiplier;
     }
+
+    public void setHardTimeLimit(final int hardTimeLimit)
+    {
+        this.hardTimeLimit = hardTimeLimit;
+    }
 }
