@@ -235,7 +235,7 @@ public class EvalGames
 			weights.add(0.0); // SkillTrace
 			weights.add(0.0); // Systematicity
 		}
-		return getEvaluationScores(game, metrics, weights, "Random", 50, 3, 1000, true, false, null)[0];
+		return getEvaluationScores(game, metrics, weights, "Random", 40, 1, 50, true, false, null)[0];
 	}
 
     //-------------------------------------------------------------------------
@@ -481,11 +481,17 @@ public class EvalGames
 
 		if(report != null)
 		{
-			for (int i = 0; i < k; i++)
-			{
-				report.getReportMessageFunctions().printMessageInAnalysisPanel( (i + 1) + " nearest game is " + nearestGames[i] + "\n");
-			}
+            for (int i = 0; i < k; i++)
+            {
+                report.getReportMessageFunctions().printMessageInAnalysisPanel( (i + 1) + " nearest game is " + nearestGames[i] + "\n");
+            }
 		}
+        else{
+            for (int i = 0; i < k; i++)
+            {
+                System.out.println((i + 1) + " nearest game is " + nearestGames[i]);
+            }
+        }
 
 		// here the nearest neighbors are evaluated based on the compareMetrics value
 		double sum = 0;
@@ -987,7 +993,7 @@ public class EvalGames
 		final boolean useDatabaseGames = argParse.getValueBool("--useDatabaseGames");
 
 		evaluateAllGames(new Report(), numberTrials, maxTurns, thinkTime, AIName, useDatabaseGames);*/
-		Game[] tempGame =
+		Game[] tempGames =
 				{
 						GameLoader.loadGameFromName("Mu Torere.lud"),
 						GameLoader.loadGameFromName("Tic-Tac-Toe.lud"),
@@ -1012,6 +1018,7 @@ public class EvalGames
 						GameLoader.loadGameFromName("Dots and Boxes.lud"),
 						GameLoader.loadGameFromName("Go.lud"),
 				};
+        Game tempGame = GameLoader.loadGameFromName("EndlessGameTest.lud");
         /*Systematicity systematicity = new Systematicity();
         systematicity.setMaxIterationMultiplier(2.0);
         systematicity.setNumMatches(100);
@@ -1023,21 +1030,21 @@ public class EvalGames
         {
             weights.add(1.0);
         }
-        System.out.println(getEvaluationScores(tempGame, metrics, weights, "Random", 50, 3, 1000, true, false)[0]);*/
+        System.out.println(getEvaluationScores(tempGames, metrics, weights, "Random", 50, 3, 1000, true, false)[0]);*/
 //		long startTime = System.currentTimeMillis();
-//		System.out.println(defaultEvaluationFast(tempGame));
+		System.out.println(defaultEvaluationFast(tempGame));
 //		long endTimeFast = System.currentTimeMillis();
 //		System.out.println("Fast evaluation time: " + ((endTimeFast - startTime) / 1000) + " seconds");
 //		System.out.println(defaultEvaluationSlow(tempGame));
 //		long endTimeSlow = System.currentTimeMillis();
 //		System.out.println("Slow evaluation time: " + ((endTimeSlow - endTimeFast) / 1000) + " seconds");
-//		System.out.println("The average rating of nearest games with BGG entries is " + recommendScore(tempGame, 5, false, true));
+//		System.out.println("The average rating of nearest games with BGG entries is " + recommendScore(tempGames, 5, false, true));
 //		calculateGameScores();
-		/*for(int i = 0; i < tempGame.length; i++)
+		/*for(int i = 0; i < tempGames.length; i++)
 		{
 			System.out.println("===========================================================================");
-			System.out.println("Recommending score for: " + tempGame[i].name());
-			System.out.println(recommendScore(tempGame[i], 3, false, true, null));
+			System.out.println("Recommending score for: " + tempGames[i].name());
+			System.out.println(recommendScore(tempGames[i], 3, false, false, null));
 		}*/
 		/*Systematicity systematicity = new Systematicity();
 		systematicity.setHardTimeLimit(1000);
@@ -1045,10 +1052,22 @@ public class EvalGames
 		systematicity.setMaxIterationMultiplier(4);
 		List<Metric> metrics = new ArrayList<>();
 		metrics.add(new Systematicity());
-		for(int i = 0; i < tempGame.length; i++)
+		for(int i = 0; i < tempGames.length; i++)
 		{
 			System.out.println("===========================================================================");
-			System.out.println("Systematicity score for " + tempGame[i].name() + " is " + getEvaluationScores(tempGame[i], metrics, null, "Random", 30, 5, 1000, true, false, null)[0]);
+			System.out.println("Systematicity score for " + tempGames[i].name() + " is " + getEvaluationScores(tempGames[i], metrics, null, "Random", 30, 5, 1000, true, false, null)[0]);
 		}*/
+        /*Systematicity systematicity = new Systematicity();
+        systematicity.setHardTimeLimit(1000);
+        systematicity.setNumMatches(100);
+        List<Metric> metrics = new ArrayList<>();
+        for(int i = 4; i < 5; i++)
+        {
+            systematicity.setMaxIterationMultiplier(Math.pow(2, i));
+            metrics.add(systematicity);
+            System.out.println("===========================================================================");
+            System.out.println("Systematicity score for Chess with iteration count " + Math.pow(2, i) + " is " + getEvaluationScores(GameLoader.loadGameFromName("Chess.lud"), metrics, null, "Random", 10, 1, 50, true, false, null)[0]);
+            metrics.remove(systematicity);
+        }*/
 	}
 }
