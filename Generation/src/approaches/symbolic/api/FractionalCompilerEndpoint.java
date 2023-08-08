@@ -16,17 +16,17 @@ import static approaches.symbolic.FractionalCompiler.*;
 public class FractionalCompilerEndpoint extends CachedEndpoint {
 
     public static void main(String[] args) {
-        EvalGames.debug = false;
         new FractionalCompilerEndpoint().start();
     }
 
     @Override
-    String respond() {
+    String cachedResponse() {
         CompilationCheckpoint partialCompilation = compileFraction(standardize(rawInput), symbolMap);
 //        partialCompilation.forEach(s -> System.out.println(s.consistentGame.root().description()));
         GameNode gameNode = partialCompilation.longest.get(0).consistentGame.root();
         String compilingPortion = gameNode.description();
         boolean compiles = partialCompilation.longest.get(0).exceptions.isEmpty() && gameNode.isRecursivelyComplete();
+        System.out.println("Compiles:" + compiles);
         return (compiles ? ("1|" + EvalGames.defaultEvaluationFast(gameNode.compile())) : "0|0") +
                 "|" + destandardize(rawInput, compilingPortion);
     }

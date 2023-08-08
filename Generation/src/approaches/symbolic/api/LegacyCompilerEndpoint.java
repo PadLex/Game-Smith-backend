@@ -1,4 +1,6 @@
 package approaches.symbolic.api;
+import java.io.OutputStream;
+import java.io.PrintStream;
 
 import compiler.Compiler;
 import game.Game;
@@ -8,7 +10,7 @@ import main.options.UserSelections;
 import supplementary.experiments.eval.EvalGames;
 
 import java.util.ArrayList;
-import java.util.Scanner;
+
 
 /*
  * Used by the extension to evaluate whether a game description compiles.
@@ -16,8 +18,9 @@ import java.util.Scanner;
  *
  * @author Alexander Padula
  */
-public class LegacyCompilerEndpoint extends CachedEndpoint {
-    public static void main(String[] args) throws InterruptedException {
+public class LegacyCompilerEndpoint extends Endpoint {
+
+    public static void main(String[] args) {
         new LegacyCompilerEndpoint().start();
     }
 
@@ -29,6 +32,5 @@ public class LegacyCompilerEndpoint extends CachedEndpoint {
         } catch (Exception ignored) {}
 
         return game != null? "1|" + EvalGames.defaultEvaluationFast(game) : "0|0";
-//        Thread.sleep(10); // Pause to prevent the buffer from filling up.
     }
 }

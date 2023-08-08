@@ -7,9 +7,6 @@ import approaches.symbolic.nodes.*;
 
 import java.util.*;
 
-import static approaches.symbolic.FractionalCompiler.standardize;
-
-
 public class AutocompleteEndpoint extends CachedEndpoint {
 
     // Compiles the game as far as it goes and returns all completions that start with the input's tail
@@ -31,8 +28,6 @@ public class AutocompleteEndpoint extends CachedEndpoint {
 
                     boolean addSpace = !standardInput.endsWith(" ");
                     if (option.symbol().label != null) {
-//                        System.out.println("tail:" + tail);
-//                        System.out.println("label:" + option.symbol().label);
 
                         if (!tail.isEmpty()) {
                             if (option instanceof ContinuedPrimitive)
@@ -58,7 +53,6 @@ public class AutocompleteEndpoint extends CachedEndpoint {
                     if (description.length() < standardInput.length()) continue;
 
                     String label = description.substring(standardInput.length());
-//                    System.out.println(label + ", " + option.symbol().nesting());
 
                     completions.add(label + "{".repeat(option.symbol().nesting()-1));
                 } else {
@@ -224,10 +218,12 @@ public class AutocompleteEndpoint extends CachedEndpoint {
     }
 
     @Override
-    String respond() {
+    String cachedResponse() {
         StringBuilder sb = new StringBuilder();
         HashSet<String> completions = new HashSet<>();
-        String standardInput = standardize(rawInput);
+
+        if (!cachedCompilation.longest.isEmpty() && cachedCompilation.longest.get(0).consistentGame instanceof GameNode && cachedCompilation.longest.get(0).consistentGame.isRecursivelyComplete())
+            return "COMPLETE!";
 
         for (String completion : autocomplete(standardInput)) {
             //assert option.root().description().startsWith(standardInput);
@@ -242,7 +238,7 @@ public class AutocompleteEndpoint extends CachedEndpoint {
             sb.delete(sb.length() - 2, sb.length());
         return sb.toString();
     }
-//FractionalCompiler.compileFraction(standardInput.substring(0, standardInput.lastIndexOf(' ')), symbolMap)
+
     public static void main(String[] args) {
         new AutocompleteEndpoint().start();
     }
