@@ -406,6 +406,12 @@ public class FractionalCompiler {
      */
     public static String destandardize(String original, String standard) {
         String pattern = standard;
+        pattern = pattern.replace("*", "\\*");
+        pattern = pattern.replace("%", "\\%");
+        pattern = pattern.replace("/", "\\/");
+        pattern = pattern.replace("+", "\\+");
+        pattern = pattern.replace("-", "\\-");
+
         pattern = pattern.replace(" ", "\\s+");
         pattern = pattern.replace("(", "\\(\\s*");
         pattern = pattern.replace(")", "\\s*\\)");

@@ -9,12 +9,11 @@ import static approaches.symbolic.FractionalCompiler.*;
 
 public class ThoroughEvaluationEndpoint extends CachedEndpoint {
     public static void main(String[] args) {
-        EvalGames.debug = false;
         new ThoroughEvaluationEndpoint().start();
     }
 
     @Override
-    String respond() {
+    String cachedResponse() {
         CompilationCheckpoint partialCompilation = compileFraction(standardize(rawInput), symbolMap);
         boolean compiles = partialCompilation.longest.get(0).exceptions.isEmpty();
         if (!compiles)

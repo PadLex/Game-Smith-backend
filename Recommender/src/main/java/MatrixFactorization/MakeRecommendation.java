@@ -21,9 +21,9 @@ public class MakeRecommendation {
     float [] recs;
     String [] fav_games;
     // Make sure q_matrix is transposed (so it's k x no. of total items)
-    public MakeRecommendation(float [] new_user_ratings, float [][] user_rating_matrix, float [][]u_matrix, float[][] q_matrix){
+    public MakeRecommendation(float [] new_user_ratings, float [][]u_matrix, float[][] q_matrix){
         this.new_user_ratings = new_user_ratings;
-        this.user_rating_matrix = user_rating_matrix;
+        this.user_rating_matrix = MatrixUtility.multiply_2_matrices(u_matrix, q_matrix);
         this.u_matrix = u_matrix;
         this.q_matrix = q_matrix;
         this.k = q_matrix.length;
