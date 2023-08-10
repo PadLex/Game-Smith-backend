@@ -90,8 +90,12 @@ public class GameNode extends GenerationNode {
     }
 
     @Override
-    public String toString() {
-        return "(" + symbol.grammarLabel() + ": " + String.join(", ", parameterSet.stream().map(GenerationNode::toString).toList()) + ")";
+    public String buildString() {
+        String label = "";
+        if (symbol.label != null)
+            label = symbol.label + ":";
+
+        return label + "(" + symbol.grammarLabel() + ": " + String.join(", ", parameterSet.stream().map(GenerationNode::toString).toList()) + ")";
     }
 
     @Override

@@ -12,7 +12,7 @@ import java.util.Objects;
  * Node representing symbols with a nesting level > 0. Compiles to an array containing its compiled parameters.
  */
 public class ArrayNode extends GenerationNode {
-    ArrayNode(MappedSymbol symbol, GenerationNode parent) {
+    public ArrayNode(MappedSymbol symbol, GenerationNode parent) {
         super(symbol, parent);
 
         assert symbol.nesting() > 0;
@@ -62,8 +62,12 @@ public class ArrayNode extends GenerationNode {
     }
 
     @Override
-    public String toString() {
-        return "{" + symbol.grammarLabel() + "; " + String.join(" ", parameterSet.stream().map(GenerationNode::toString).toList()) + "}";
+    public String buildString() {
+        String label = "";
+        if (symbol.label != null)
+            label = symbol.label + ":";
+
+        return label + "{" + symbol.grammarLabel() + "; " + String.join(" ", parameterSet.stream().map(GenerationNode::toString).toList()) + "}";
     }
 
     @Override

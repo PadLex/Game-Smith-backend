@@ -10,7 +10,7 @@ import java.util.List;
  * Node representing an enum ludeme. This is a terminal node.
  */
 public class EnumNode extends GenerationNode {
-    EnumNode(MappedSymbol symbol, GenerationNode parent) {
+    public EnumNode(MappedSymbol symbol, GenerationNode parent) {
         super(symbol, parent);
     }
 
@@ -37,7 +37,16 @@ public class EnumNode extends GenerationNode {
     }
 
     @Override
-    public String toString() {
-        return symbol.grammarLabel();
+    public String buildString() {
+        return buildDescription();
+    }
+
+    @Override
+    public String buildDescription() {
+        String label = "";
+        if (symbol.label != null)
+            label = symbol.label + ":";
+
+        return label + symbol.grammarLabel();
     }
 }

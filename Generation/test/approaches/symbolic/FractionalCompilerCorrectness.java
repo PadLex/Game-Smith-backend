@@ -12,6 +12,8 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
+import static approaches.symbolic.FractionalCompiler.standardize;
+
 public class FractionalCompilerCorrectness {
     static void testLudiiLibrary(SymbolMap symbolMap, int limit) throws IOException {
         List<String> skip = List.of("Kriegspiel (Chess).lud", "Throngs.lud", "Tai Shogi.lud", "Taikyoku Shogi.lud", "Yonin Seireigi.lud", "Yonin Shogi.lud"); // "To Kinegi tou Lagou.lud"
@@ -38,13 +40,37 @@ public class FractionalCompilerCorrectness {
             final UserSelections userSelections = new UserSelections(new ArrayList<>());
             final Report report = new Report();
             Parser.expandAndParse(description, userSelections, report, true, false);
-            // TODO test
+
+            String expandedDescription = standardize(description.expanded());
+            FractionalCompiler.CompilationCheckpoint compilation = FractionalCompiler.compileFraction("(game", symbolMap);
+            for (int i = 5; i < expandedDescription.length() - 1; i++) {
+                System.out.println(expandedDescription.substring(0, i + 1));
+                compilation = FractionalCompiler.compileFraction(expandedDescription.substring(0, i + 1), compilation, symbolMap);
+                System.out.println("   --> " + compilation.longest.get(0).consistentGame.root().description());
+                System.out.println("   --> " + compilation.longest.size());
+//                compilation.forEach(s -> System.out.println("       --> " + s.consistentGame + " ->> " + s.remainingOptions + " -- " + s.exceptions));
+
+//                if (i > 40)
+//                    throw new RuntimeException();
+            }
+
+            System.out.println("expected:\n"+expandedDescription);
+
+
+//            if (!compilation.peek().exceptions.isEmpty()) {
+//                compilation.peek().exceptions.forEach(Throwable::printStackTrace);
+//                throw new RuntimeException("Error compiling " + path.getFileName());
+//            }
+
+            if (!compilation.longest.get(0).consistentGame.root().isRecursivelyComplete()) {
+                throw new RuntimeException("Incomplete " + path.getFileName());
+            }
         }
     }
 
     public static void main(String[] args) throws IOException {
         CachedMap symbolMapper = new CachedMap();
-        testLudiiLibrary(symbolMapper, 100);
+        testLudiiLibrary(symbolMapper, 2000);
         System.out.println("cache:" + symbolMapper.cachedQueries.size());
 
 //        testLudiiLibrary(symbolMapper, 100);

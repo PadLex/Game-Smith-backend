@@ -1,12 +1,11 @@
 package approaches.symbolic.api;
-import java.io.OutputStream;
-import java.io.PrintStream;
 
 import compiler.Compiler;
 import game.Game;
 import main.grammar.Description;
 import main.grammar.Report;
 import main.options.UserSelections;
+import parser.Expander;
 import supplementary.experiments.eval.EvalGames;
 
 import java.util.ArrayList;
@@ -18,19 +17,24 @@ import java.util.ArrayList;
  *
  * @author Alexander Padula
  */
-public class LegacyCompilerEndpoint extends Endpoint {
+public class ExpanderEndpoint extends Endpoint {
 
     public static void main(String[] args) {
-        new LegacyCompilerEndpoint().start();
+        new ExpanderEndpoint().start();
     }
 
     @Override
     String respond() {
-        Game game = null;
+        Description description = new Description(rawInput);
         try {
-            game = (Game) Compiler.compile(new Description(rawInput), new UserSelections(new ArrayList<>()), new Report(), false);
-        } catch (Exception ignored) {}
+            Expander.expand(description, new UserSelections(new ArrayList<>()), new Report(), false);
+//            Compiler.compile(description, new UserSelections(new ArrayList<>()), new Report(), false);
+        } catch (Exception exception) {
+            throw new RuntimeException(exception);
+        }
 
-        return game != null? "1|" + EvalGames.defaultEvaluationFast(game) : "0|0";
+//        System.out.println(description.expanded());
+
+        return description.expanded();
     }
 }
