@@ -8,6 +8,7 @@ import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.util.*;
 
+import game.rules.play.moves.Moves;
 import metrics.designer.IdealDuration;
 import metrics.designer.SkillTrace;
 import metrics.designer.Systematicity;
@@ -280,7 +281,7 @@ public class EvalGames
             weights.add(4.0); // SkillTrace
             weights.add(0.5); // Systematicity
         }
-		return getEvaluationScores(game, metrics, weights, "UCT", 10, 0.1, 100, true, false, null)[0];
+		return getEvaluationScores(game, metrics, weights, "UCT", 10, 0.5, 100, true, false, null)[0];
 	}
 
     //-------------------------------------------------------------------------
@@ -295,7 +296,8 @@ public class EvalGames
         final Trial trial = new Trial(game);
         final Context context = new Context(game, trial);
         game.start(context);
-        return game.moves(context).count() == 0 || (game.moves(context).count() == 1 && ((ActionPass) game.moves(context).get(0).actions().get(0)).isForced());
+		Moves initialMoves = game.moves(context);
+        return initialMoves.count() == 0 || (initialMoves.count() == 1 && (initialMoves.get(0).actions().get(0)).isForced());
     }
 
     //-------------------------------------------------------------------------
@@ -1046,10 +1048,10 @@ public class EvalGames
         }
         System.out.println(getEvaluationScores(tempGames, metrics, weights, "Random", 50, 3, 1000, true, false)[0]);*/
 //		long startTime = System.currentTimeMillis();
-//		System.out.println(defaultEvaluationFast(tempGame));
+		System.out.println(defaultEvaluationFast(tempGame));
 //		long endTimeFast = System.currentTimeMillis();
 //		System.out.println("Fast evaluation time: " + ((endTimeFast - startTime) / 1000) + " seconds");
-		System.out.println(defaultEvaluationSlow(tempGame));
+//		System.out.println(defaultEvaluationSlow(tempGame));
 //		long endTimeSlow = System.currentTimeMillis();
 //		System.out.println("Slow evaluation time: " + ((endTimeSlow - endTimeFast) / 1000) + " seconds");
 //		System.out.println("The average rating of nearest games with BGG entries is " + recommendScore(tempGames, 5, false, true));
