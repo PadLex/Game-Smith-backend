@@ -1,9 +1,12 @@
 package approaches.symbolic;
 
-import approaches.symbolic.nodes.GameNode;
-import compiler.Compiler;
+import main.StringRoutines;
 import main.grammar.Description;
+import main.grammar.ParseItem;
 import main.grammar.Report;
+import main.options.Option;
+import main.options.OptionCategory;
+import main.options.Ruleset;
 import main.options.UserSelections;
 import parser.Parser;
 
@@ -12,29 +15,35 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
-import static approaches.symbolic.FractionalCompiler.compileComplete;
+import static approaches.symbolic.FractionalCompiler.endOfParameter;
 import static approaches.symbolic.FractionalCompiler.standardize;
 
 public class Dataset {
-    static void buildDataset(SymbolMap symbolMap, int limit) throws IOException {
-        List<String> skip = List.of("Kriegspiel (Chess).lud", "Throngs.lud", "Tai Shogi.lud", "Taikyoku Shogi.lud", "Yonin Seireigi.lud", "Yonin Shogi.lud"); // "To Kinegi tou Lagou.lud"
+    Set<String> skip = Set.of("Kriegspiel (Chess).lud", "Throngs.lud", "Tai Shogi.lud", "Taikyoku Shogi.lud", "Yonin Seireigi.lud", "Yonin Shogi.lud"); // "To Kinegi tou Lagou.lud"
+    Set<String> validation = Set.of("Kanguruh.lud", "Dara.lud", "Tennessee Waltz.lud", "Ploy.lud", "Quinze Tablas.lud", "Upper Hand.lud", "Had.lud", "Seesaw Draughts.lud", "Rwandan Alignment Game.lud", "All Queens Chess.lud", "Lights Out.lud", "Banqi.lud", "Groups.lud", "Siga (Sri Lanka).lud", "Santaraj.lud", "Starchess.lud", "Paintbucket.lud", "HexGo.lud", "Toads and Frogs.lud", "Duqurjin.lud", "Damenspiel.lud", "Rabbit Warrens.lud", "Tshuba.lud", "Cram.lud", "Chatur.lud", "Okwe (Nigeria).lud", "Gonnect.lud", "Tridoku.lud", "Hat Diviyan Keliya.lud", "L Game.lud", "Owela (Benguela).lud", "Ho-Bag Gonu.lud", "Yavalanchor.lud", "Dubblets.lud", "Dame.lud", "Macheng.lud", "Orissa Tiger Game (Four Tigers).lud", "Shataranja.lud", "Frangieh.lud", "Quick Chess.lud", "Dum Blas.lud", "Spava.lud", "Peralikatuma.lud", "Yote.lud", "Qirkat.lud", "Pong Hau K'i.lud", "Kioz.lud", "Diris.lud", "Anti-Knight Sudoku.lud", "Tara.lud", "RootZone.lud", "Spartan Chess.lud", "Latin Square.lud", "Korkserschach.lud", "Wali.lud", "Chaturanga (al-Adli).lud", "Susan.lud", "Bagh Batti.lud", "Blue Nile.lud", "Parsi Chess.lud", "Sig wa Duqqan (Houmt Taourit).lud", "Tavlej.lud", "Sig (Western Sahara).lud", "Madelinette.lud", "Sumi Naga Game (Hunt).lud", "Capture the Queen.lud", "Janes Soppi (Symmetrical).lud", "Alquerque.lud", "Gurgaldaj.lud", "Msuwa wa Kunja.lud", "Unnee Tugalluulax.lud", "Shatranj al-Husun.lud", "Monty Hall Problem.lud", "Ishighan.lud", "Damas.lud", "Deka.lud", "Dama (Kenya).lud", "HexTrike.lud", "Chomp.lud", "Poprad Game.lud", "Infuse.lud", "Branching Coral.lud", "Terhuchu (Small).lud", "Caturvimsatikosthakatmiki Krida.lud", "Driesticken.lud", "Mu Torere.lud", "Marelle Quadruple.lud", "Mini Hexchess.lud", "Komikan.lud", "Shatranj (Algeria).lud", "Claim Jumpers.lud", "Ring.lud", "Mysore Tiger Game.lud", "A Simple Game.lud", "Xonin Shatar (Complex).lud", "Alquerque de Doze (Portugal).lud", "Six Insect Game.lud", "Dama (Alquerque).lud", "Sudoku.lud", "Hackenbush.lud", "Diagonal Hex.lud", "Cannon.lud", "Mogul Putt'han.lud", "Chase.lud", "Leyla Gobale (Somaliland).lud", "Ratio.lud", "Tsukkalavde.lud", "Schuster.lud", "Tab.lud", "Seesaw.lud", "Oriath.lud", "Sudoku Mine.lud", "Coyote.lud", "Xonin Shatar (Simple).lud", "Sig (Mauritania).lud", "Awari.lud", "Dragonchess.lud", "Camelot.lud", "Hund efter Hare (Thy).lud", "Dama (Philippines).lud", "Bagha Guti.lud", "Radran.lud", "Maze.lud", "Baralie.lud", "Tsoro (Reentered Captures).lud", "Yavalax.lud", "Pareia de Entrada.lud", "Main Dam.lud", "Chess (Siberia).lud", "Game of Solomon.lud", "Chaturanga (Kridakausalya 14x14).lud", "TacTix.lud", "Brandub.lud", "Tant Fant.lud", "Tsoro Yemutatu (Triangle).lud", "Patok.lud", "Taptana.lud", "Murus Gallicus.lud", "Greater Loss.lud", "Motiq.lud", "Moruba.lud", "Bara Guti (Bihar).lud", "Epelle.lud", "Shogun.lud", "Knossos Game.lud", "Theseus and the Minotaur.lud", "Uxrijn Ever.lud", "Shatranj at-Tamma.lud", "Parry.lud", "Astralesce and Constellation.lud", "Shogi Puzzle.lud", "Residuel.lud", "Pente.lud", "Kulaochal.lud", "Uril.lud", "Zola.lud", "Royal Game of Ur.lud", "Quantum Leap.lud", "Puhulmutu.lud", "Davxar Zirge (Type 1).lud", "Queah Game.lud", "Nin Adnai Kit Adnat.lud", "Guerrilla Checkers.lud", "Goldilocks Stones.lud", "Fibonacci Nim.lud", "Hoshi.lud", "Huli-Mane Ata.lud", "Ashanti Alignment Game.lud", "Koti Keliya.lud", "Currierspiel.lud", "Juroku Musashi.lud", "Breakthru.lud", "Tasholiwe.lud", "Futoshiki.lud", "Hindustani Chess.lud", "Selbia.lud", "Game of Dwarfs.lud", "Atari Go.lud", "Janes Soppi.lud", "Short Assize.lud", "Mefuvha.lud", "Aj Sakakil.lud", "Boseog Gonu.lud", "Shui Yen Ho-Shang.lud", "Official Football Chess.lud", "Ethiopian Capture Game.lud", "Selayar Game.lud", "Whyo.lud", "Baqura.lud", "Adjiboto.lud", "Welschschach.lud", "Koro.lud", "Mylna.lud", "Skirmish (GDL).lud", "Tides.lud", "Bao Kiswahili (DR Congo).lud", "Lau Kata Kati.lud", "Lange Puff.lud", "Andantino.lud", "Alea Evangelii.lud", "Mlabalaba.lud", "Dala.lud", "Safe Passage.lud", "Awagagae.lud", "Terhuchu.lud", "Petol.lud", "Horde Chess.lud", "La Yagua.lud", "Fenix.lud", "Chong (Sakhalin).lud", "Omega.lud", "Morabaraba.lud", "Ijil Buga.lud", "Crossway.lud", "Kiz Tavlasi.lud", "Chinese Checkers.lud", "Snailtrail.lud", "Backgammon.lud", "Tsoro (Additional Capture).lud", "La Chascona.lud", "Sabou'iyya.lud", "Buffa de Baldrac.lud", "Pasakakrida (Type 5).lud", "Pulijudamu.lud", "Wagner.lud", "Zuz Mel (7x7).lud", "Pasakakrida (Type 3).lud", "Yup'ik Checkers.lud", "Chuka.lud", "Msuwa.lud", "Saxun.lud", "Namudilakunze.lud", "Siryu (Race).lud", "Lisolo.lud", "Ketch-Dolt.lud", "Overflow.lud", "Beirut Chess.lud", "Smasandyutakankarikrida (Allahabad).lud", "Tapata.lud", "Ufuba wa Hulana.lud", "Reversi.lud", "Buttons And Lights.lud", "Hawalis.lud", "Dig Dig.lud", "Intotoi.lud", "The Pawn Game.lud", "Keryo-Pente.lud", "Adzua.lud", "Nard.lud", "Konane.lud", "Lian Qi (Bohai).lud", "Kensington.lud", "Tauru.lud", "Zuz Mel (5x5).lud", "Chameleon.lud", "Choko.lud", "Ngre E E.lud", "Bamboo.lud", "Knight's Tour.lud", "Svensk Bradspel.lud", "Sokkattan.lud", "Eleven-Fang.lud", "Li'b al-Sidr.lud", "Level Chess.lud", "Pachgarhwa.lud", "Shono.lud", "Castello.lud", "Wouri.lud", "Cheng Fang Cheng Long.lud", "Schachzabel.lud", "Ssang-Ryouk.lud", "I Pere.lud", "Ikh Buga.lud", "Janggi.lud", "Mangola.lud", "Tsoro (Baia).lud", "Sudoku X.lud", "Xiangqi.lud", "Challis Ghutia.lud", "English Draughts.lud", "Mbenga Alignment Game.lud", "Ashta-kashte.lud", "Mandinka Game.lud", "Windflowers.lud", "Dama (Italy).lud", "Tumbleweed.lud", "Boukerourou.lud", "Resolve.lud", "Nerenchi Keliya.lud", "Kawasukuts.lud", "Tank Tactics.lud", "Sfenj.lud", "Gabata (Oromo).lud", "Ataxx.lud", "Tayam Sonalu.lud", "Luuth.lud", "Knightthrough.lud", "Kubuguza.lud", "Medio Emperador.lud", "Omny.lud");
+    String gamesRoot = "./Common/res/lud/good";
+    String nestedRoot = "./expanded";
+    Path nestedPath = Paths.get(nestedRoot);
 
-        String gamesRoot = "./Common/res/lud/board";
-        String outputRoot = "./expanded";
-        Path outputRootPath = Paths.get(outputRoot);
+    String flatTrainingFile = "./training_expanded.txt";
+    String flatValidationFile = "./validation_expanded.txt";
 
-        // Create the output root directory if it doesn't exist
-        if (!Files.exists(outputRootPath)) {
-            Files.createDirectory(outputRootPath);
-        }
+    List<Path> paths = new ArrayList<>();
+    List<Description> descriptions = new ArrayList<>();
+    List<UserSelections> userSelections = new ArrayList<>();
 
-        List<Path> paths = Files.walk(Paths.get(gamesRoot)).filter(Files::isRegularFile).filter(path -> path.toString().endsWith(".lud")).sorted().limit(limit).toList();
+    public Dataset(int limit) throws IOException {
+        List<Path> unfiltered_paths = Files.walk(Paths.get(gamesRoot)).filter(Files::isRegularFile).filter(path -> path.toString().endsWith(".lud")).sorted().limit(limit).toList();
         int count = 0;
-        for (Path path : paths) {
+        for (Path path: unfiltered_paths) {
             String gameStr = Files.readString(path);
             count++;
+
+            System.out.println("\nLoading " + path.getFileName() + " (" + (count) + " of " + unfiltered_paths.size() + " games)");
 
             if (gameStr.contains("match")) {
                 System.out.println("Skipping match " + path.getFileName());
@@ -42,11 +51,37 @@ public class Dataset {
             }
 
             if (skip.contains(path.getFileName().toString())) {
-                System.out.println("Skipping skip" + path.getFileName());
+                System.out.println("Skipping skip " + path.getFileName());
                 continue;
             }
 
-            System.out.println("\nLoading " + path.getFileName() + " (" + (count + 1) + " of " + paths.size() + " games)");
+            Description description = new Description(gameStr);
+            final UserSelections userSelections = new UserSelections(new ArrayList<>());
+            final Report report = new Report();
+            Parser.expandAndParse(description, userSelections, report, true, false);
+            String expandedDescription = standardize(description.expanded());
+
+            if (expandedDescription.length() > 10000) {
+                System.out.println("Skipping too long " + path.getFileName());
+                continue;
+            }
+
+            paths.add(path);
+            descriptions.add(description);
+            this.userSelections.add(userSelections);
+        }
+    }
+
+
+    void buildNestedDataset() throws IOException {
+
+        // Create the output root directory if it doesn't exist
+        if (!Files.exists(nestedPath)) {
+            Files.createDirectory(nestedPath);
+        }
+
+        for (Path path : paths) {
+            String gameStr = Files.readString(path);
 
             Description description = new Description(gameStr);
             final UserSelections userSelections = new UserSelections(new ArrayList<>());
@@ -55,7 +90,7 @@ public class Dataset {
             String expandedDescription = standardize(description.expanded());
 
             Path relativePath = Paths.get(gamesRoot).relativize(path.getParent());
-            Path outputPathDirectory = Paths.get(outputRoot, relativePath.toString());
+            Path outputPathDirectory = Paths.get(nestedRoot, relativePath.toString());
 
             // Create directories as needed
             if (!Files.exists(outputPathDirectory)) {
@@ -67,8 +102,107 @@ public class Dataset {
         }
     }
 
+    void buildFlatDataset(int options) throws IOException {
+        StringBuilder training_dataset = new StringBuilder();
+        StringBuilder validation_dataset = new StringBuilder();
+        for (int i = 0; i < paths.size(); i++) {
+            StringBuilder entree = new StringBuilder();
+            Path path = paths.get(i);
+            Description description = descriptions.get(i);
+            UserSelections userSelections = this.userSelections.get(i);
+
+            if (description.metadata() == null) {
+                System.out.println("Skipping " + path.getFileName() + " because it has no metadata");
+                continue;
+            }
+
+            String rules = getLudemeContent(description.metadata(), "(rules");
+
+            if (rules.isBlank() && !description.rulesets().isEmpty()) {
+                Ruleset defaultRuleset = description.rulesets().get(0);
+                for (Ruleset ruleset: description.rulesets()) {
+                    if (ruleset.priority() > defaultRuleset.priority())
+                        defaultRuleset = ruleset;
+                }
+                rules = getLudemeContent(description.raw(), "(useFor \"" + defaultRuleset.heading() + "\" (rules");
+            }
+
+
+            if (rules.isBlank()) {
+                System.out.println("Skipping " + path.getFileName() + " because it has no rules");
+                System.out.println("Description:" + getLudemeContent(description.metadata(), "(description"));
+                continue;
+            }
+
+            if (rules.length() < 60) {
+                System.out.println("Skipping " + path.getFileName() + " because the rules are too short");
+                System.out.println("Rules: " + rules);
+                continue;
+            }
+            entree.append(rules.replaceAll("\\s+", " ").strip());
+
+            for (OptionCategory category: description.gameOptions().categories()) {
+                Option defaultOption = null;
+                for (Option option: category.options()) {
+                    if (defaultOption == null || option.priority() > defaultOption.priority())
+                        defaultOption = option;
+                }
+                if (defaultOption != null) {
+                    entree.append(' ').append(defaultOption.description());
+//                    System.out.println(defaultOption.tag() + " = " + defaultOption.description());
+                }
+            }
+
+            entree.append("\n").append(standardize(description.expanded())).append("\n");
+
+            String entreeString = entree.toString().replace("\\", "");
+
+            if (validation.contains(path.getFileName().toString()))
+                validation_dataset.append(entreeString);
+            else
+                training_dataset.append(entreeString);
+        }
+
+        Files.writeString(Paths.get(flatTrainingFile), training_dataset);
+        Files.writeString(Paths.get(flatValidationFile), validation_dataset);
+    }
+
+    String getLudemeContent(String parent, String ludeme) {
+        int c = parent.indexOf(ludeme);
+        if (c == -1)
+            return "";
+
+        // Find matching closing bracket
+        int closing = StringRoutines.matchingBracketAt(parent, c);
+        if (closing == -1)
+            return "";
+
+        // Check if there is a duplicate ludeme in the content
+        if (parent.indexOf(ludeme, closing) != -1)
+            return "";
+
+        String quoted = parent.substring(c + ludeme.length(), closing).strip();
+        return quoted.substring(1, quoted.length() - 1);
+    }
+
+    ParseItem findItem(ParseItem item, List<String> path) {
+        for (ParseItem child: item.arguments()) {
+            System.out.println("name: " + child.token().name());
+            if (child.token().name().equals(path.get(0))) {
+                if (path.size() == 1) {
+                    return child;
+                } else {
+                    return findItem(child, path.subList(1, path.size()));
+                }
+            }
+        }
+        return null;
+    }
+
     public static void main(String[] args) throws IOException {
-        SymbolMap symbolMap = new CachedMap();
-        buildDataset(symbolMap, 2000);
+        new Dataset(2000).buildFlatDataset(3);
+//        List<Path> paths = new ArrayList<>(new Dataset(2000).paths);
+//        Collections.shuffle(paths);
+//        System.out.println(paths.stream().limit(300).map(p -> '"' + p.getFileName().toString() + '"').toList());
     }
 }
