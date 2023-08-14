@@ -8,6 +8,7 @@ import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.util.*;
 
+import game.rules.play.moves.Moves;
 import metrics.designer.IdealDuration;
 import metrics.designer.SkillTrace;
 import metrics.designer.Systematicity;
@@ -190,8 +191,9 @@ public class EvalGames
 			{
 				sum[0] += scores[m];
 			}
-			int num = scores.length;
-			if(num == 0) num = 1;
+			double num = 0.0;
+            for(int i = 0; i < weights.size(); i++) num += weights.get(i);
+			if(num == 0) num = 1.0;
 			sum[0] /= num; // normalized to be in range 0 to 1
 			return sum;
 		}
@@ -261,12 +263,25 @@ public class EvalGames
 			metrics.add(new Drawishness());
 			metrics.add(new Timeouts());
 			metrics.add(new BoardCoverageDefault());
-			metrics.add(new DecisivenessMoves());
+			metrics.add(new OutcomeUniformity());
 			metrics.add(new IdealDuration());
 			metrics.add(skillTrace);
 			metrics.add(new Systematicity());
 		}
-		return getEvaluationScores(game, metrics, null, "UCT", 10, 0.1, 100, true, false, null)[0];
+        ArrayList<Double> weights = new ArrayList<>();
+        {
+            weights.add(0.5); // AdvantageP1
+            weights.add(1.0); // Balance
+            weights.add(0.5); // Completion
+            weights.add(0.5); // Drawishness
+            weights.add(0.5); // Timeouts
+            weights.add(2.0); // BoardCoverageDefault
+            weights.add(1.0); // OutcomeUniformity
+            weights.add(0.5); // IdealDuration
+            weights.add(4.0); // SkillTrace
+            weights.add(0.5); // Systematicity
+        }
+		return getEvaluationScores(game, metrics, weights, "UCT", 10, 0.5, 100, true, false, null)[0];
 	}
 
     //-------------------------------------------------------------------------
@@ -281,7 +296,8 @@ public class EvalGames
         final Trial trial = new Trial(game);
         final Context context = new Context(game, trial);
         game.start(context);
-        return game.moves(context).count() == 0 || (game.moves(context).count() == 1 && ((ActionPass) game.moves(context).get(0).actions().get(0)).isForced());
+		Moves initialMoves = game.moves(context);
+        return initialMoves.count() == 0 || (initialMoves.count() == 1 && (initialMoves.get(0).actions().get(0)).isForced());
     }
 
     //-------------------------------------------------------------------------
@@ -1018,7 +1034,7 @@ public class EvalGames
 						GameLoader.loadGameFromName("Dots and Boxes.lud"),
 						GameLoader.loadGameFromName("Go.lud"),
 				};
-        Game tempGame = GameLoader.loadGameFromName("EndlessGameTest.lud");
+        Game tempGame = GameLoader.loadGameFromName("FastEvalTest.lud");
         /*Systematicity systematicity = new Systematicity();
         systematicity.setMaxIterationMultiplier(2.0);
         systematicity.setNumMatches(100);
@@ -1061,12 +1077,12 @@ public class EvalGames
         systematicity.setHardTimeLimit(1000);
         systematicity.setNumMatches(100);
         List<Metric> metrics = new ArrayList<>();
-        for(int i = 4; i < 5; i++)
+        for(int i = 1; i < 5; i++)
         {
             systematicity.setMaxIterationMultiplier(Math.pow(2, i));
             metrics.add(systematicity);
             System.out.println("===========================================================================");
-            System.out.println("Systematicity score for Chess with iteration count " + Math.pow(2, i) + " is " + getEvaluationScores(GameLoader.loadGameFromName("Chess.lud"), metrics, null, "Random", 10, 1, 50, true, false, null)[0]);
+            System.out.println("Systematicity score for " + tempGame.name() + " with iteration count " + Math.pow(2, i) + " is " + getEvaluationScores(tempGame, metrics, null, "Random", 10, 1, 50, true, false, null)[0]);
             metrics.remove(systematicity);
         }*/
 	}
