@@ -10,6 +10,6 @@ public class Prediction {
         SymbolMap symbolMap = new SymbolMap();
         Symbol symbol = Grammar.grammar().findSymbolByPath("game.functions.region.sites.Sites");
         List<Symbol> arguments = List.of();
-        System.out.println(symbolMap.nextPossibilities(symbol, arguments).stream().map(s -> s.path() + "|" + s.nesting()).toList());
+        System.out.println(symbolMap.nextValidParameters(symbol, arguments).stream().map(s -> s.path() + "|" + s.nesting()).toList());
     }
 }

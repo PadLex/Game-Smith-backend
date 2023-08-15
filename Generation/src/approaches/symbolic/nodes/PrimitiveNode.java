@@ -96,10 +96,10 @@ public class PrimitiveNode extends GenerationNode {
             return "\"" + value + "\"";
 
         String strValue = value.toString();
-        if (Objects.equals(strValue, "1000000000"))
-            return "Infinity";
-        if (Objects.equals(strValue, "-1000000000"))
-            return "-Infinity";
+//        if (Objects.equals(strValue, "1000000000"))
+//            return "Infinity";
+//        if (Objects.equals(strValue, "-1000000000"))
+//            return "-Infinity";
 
         if (Objects.equals(strValue, "true"))
             return "True";

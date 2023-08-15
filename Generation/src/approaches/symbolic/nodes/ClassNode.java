@@ -41,7 +41,7 @@ public class ClassNode extends GenerationNode {
 
     public List<GenerationNode> nextPossibleParameters(SymbolMap symbolMap) {
         List<MappedSymbol> partialParameters = parameterSet.stream().map(node -> node.symbol).toList();
-        List<MappedSymbol> possibleSymbols = symbolMap.nextPossibilities(symbol, partialParameters);
+        List<MappedSymbol> possibleSymbols = symbolMap.nextValidParameters(symbol, partialParameters);
         return possibleSymbols.stream().map(s -> GenerationNode.fromSymbol(s, this)).toList();
     }
 

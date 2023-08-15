@@ -25,6 +25,9 @@ public class SyntaxHighlightTool {
                     classes.add(s.token());
                     if (s.hasAlias())
                         classes.add(StringRoutines.toDromedaryCase(s.name()));
+
+                    if (s.hasAlias())
+                        System.out.println(s.token() + " == " + StringRoutines.toDromedaryCase(s.name()));
                 }
 
                 if (s.rule() != null && s.rule().rhs() != null)

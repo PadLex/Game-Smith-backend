@@ -36,9 +36,9 @@ public class SymbolMap {
     // Maps symbols to every possible set of base-symbols (aka parameters) that can be used to initialize them.
     // eg game.util.graph.Graph can be initialized using [<Float>, null], [<Float>, <Integer>], [], or [<graph>]
     final Map<String, List<List<MappedSymbol>>> parameterMap = new HashMap<>();
-    private final Set<Symbol> symbols = new HashSet<>();
-    private final Set<String> paths = new HashSet<>();
-    private final Map<String, List<Symbol>> compatibilityMap = new HashMap<>();
+    final Set<Symbol> symbols = new HashSet<>();
+    final Set<String> paths = new HashSet<>();
+    final Map<String, List<Symbol>> instantiableMap = new HashMap<>();
 
     public SymbolMap() {
         this(Grammar.grammar().symbols().stream().filter(s ->
@@ -54,7 +54,7 @@ public class SymbolMap {
         this.paths.addAll(symbols.stream().map(Symbol::path).toList());
 
         buildSymbolMap();
-        buildCompatibilityMap();
+        buildInstantiableMap();
     }
 
     /**
@@ -64,7 +64,7 @@ public class SymbolMap {
      * @param partialArguments A list of symbols which have already been selected to complete the parent.
      * @return A list of symbols which could be the next argument for the parent.
      */
-    public List<MappedSymbol> nextPossibilities(Symbol parent, List<? extends Symbol> partialArguments) {
+    public List<MappedSymbol> nextValidParameters(Symbol parent, List<? extends Symbol> partialArguments) {
         assert !partialArguments.contains(endOfClauseSymbol);
         Stream<List<MappedSymbol>> parameterSets = parameterMap.get(parent.path()).stream();
 
@@ -90,7 +90,7 @@ public class SymbolMap {
             if (argSymbol.nesting() > 0) {
                 possibilities.put(argSymbol.path() + argKey, argSymbol);
             } else {
-                for (Symbol symbol : compatibilityMap.get(argSymbol.path())) {
+                for (Symbol symbol : instantiableMap.get(argSymbol.path())) {
                     // TODO do I need argSymbol.nesting()
                     possibilities.put(symbol.path() + argKey, new MappedSymbol(symbol, argSymbol.label));
                 }
@@ -104,13 +104,13 @@ public class SymbolMap {
      * @param symbol The symbol to get compatible symbols for.
      * @return A list of symbols which can be used to initialize the given symbol.
      */
-    public List<Symbol> getCompatibleSymbols(Symbol symbol) {
-        return Collections.unmodifiableList(compatibilityMap.get(symbol.path()));
+    public List<Symbol> getInstantiableSymbols(Symbol symbol) {
+        return Collections.unmodifiableList(instantiableMap.get(symbol.path()));
     }
 
-    private void buildCompatibilityMap() {
+    private void buildInstantiableMap() {
         for (Symbol symbol : symbols) {
-            compatibilityMap.put(symbol.path(), new ArrayList<>());
+            instantiableMap.put(symbol.path(), new ArrayList<>());
         }
 
         for (Symbol symbol : symbols) {
@@ -131,13 +131,13 @@ public class SymbolMap {
                 boolean hasRule = other.rule() != null;
 
                 if (isCompatible && !isSubLudeme && (isInitializable || isEnumValue) && ((inGrammar && hasRule) || isPrimitive || isEnumValue)) {
-                    compatibilityMap.get(symbol.path()).add(other);
+                    instantiableMap.get(symbol.path()).add(other);
                 }
             }
         }
 
-        compatibilityMap.put(emptySymbol.path(), List.of(emptySymbol));
-        compatibilityMap.put(endOfClauseSymbol.path(), List.of(endOfClauseSymbol));
+        instantiableMap.put(emptySymbol.path(), List.of(emptySymbol));
+        instantiableMap.put(endOfClauseSymbol.path(), List.of(endOfClauseSymbol));
     }
 
     private void buildSymbolMap() {

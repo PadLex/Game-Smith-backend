@@ -45,16 +45,16 @@ public class AutocompleteEndpoint extends CachedEndpoint {
                         completion = " " + completion;
 
                     completions.add(completion);
-                } else if (option instanceof EndOfClauseNode) {
-                    if (node.root().description().length() + 1 < standardInput.length()) continue;
-                    completions.addAll(consecutiveClosingBrackets(node));
-                } else if (option instanceof ArrayNode) {
-                    String description = option.root().description();
-                    if (description.length() < standardInput.length()) continue;
-
-                    String label = description.substring(standardInput.length());
-
-                    completions.add(label + "{".repeat(option.symbol().nesting()-1));
+//                } else if (option instanceof EndOfClauseNode) {
+//                    if (node.root().description().length() + 1 < standardInput.length()) continue;
+//                    completions.addAll(consecutiveClosingBrackets(node));
+//                } else if (option instanceof ArrayNode) {
+//                    String description = option.root().description();
+//                    if (description.length() < standardInput.length()) continue;
+//
+//                    String label = description.substring(standardInput.length());
+//
+//                    completions.add(label + "{".repeat(option.symbol().nesting()-1));
                 } else {
                     String description = option.root().description();
                     if (description.length() < standardInput.length()) continue;
@@ -236,6 +236,8 @@ public class AutocompleteEndpoint extends CachedEndpoint {
 
         if (sb.length() > 2)
             sb.delete(sb.length() - 2, sb.length());
+
+//        log("Autocomplete response", sb.toString());
         return sb.toString();
     }
 

@@ -14,10 +14,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static approaches.symbolic.FractionalCompiler.endOfParameter;
 import static approaches.symbolic.FractionalCompiler.standardize;
@@ -80,13 +77,9 @@ public class Dataset {
             Files.createDirectory(nestedPath);
         }
 
-        for (Path path : paths) {
-            String gameStr = Files.readString(path);
-
-            Description description = new Description(gameStr);
-            final UserSelections userSelections = new UserSelections(new ArrayList<>());
-            final Report report = new Report();
-            Parser.expandAndParse(description, userSelections, report, true, false);
+        for (int i = 0; i < paths.size(); i++) {
+            Path path = paths.get(i);
+            Description description = descriptions.get(i);
             String expandedDescription = standardize(description.expanded());
 
             Path relativePath = Paths.get(gamesRoot).relativize(path.getParent());
@@ -102,7 +95,7 @@ public class Dataset {
         }
     }
 
-    void buildFlatDataset(int options) throws IOException {
+    void buildFlatDataset(int optionDuplicates) throws IOException {
         StringBuilder training_dataset = new StringBuilder();
         StringBuilder validation_dataset = new StringBuilder();
         for (int i = 0; i < paths.size(); i++) {
@@ -139,24 +132,39 @@ public class Dataset {
                 System.out.println("Rules: " + rules);
                 continue;
             }
-            entree.append(rules.replaceAll("\\s+", " ").strip());
 
+            List<List<Option>> sortedOptions = new ArrayList<>();
             for (OptionCategory category: description.gameOptions().categories()) {
-                Option defaultOption = null;
-                for (Option option: category.options()) {
-                    if (defaultOption == null || option.priority() > defaultOption.priority())
-                        defaultOption = option;
-                }
-                if (defaultOption != null) {
-                    entree.append(' ').append(defaultOption.description());
-//                    System.out.println(defaultOption.tag() + " = " + defaultOption.description());
+                List<Option> sorted = new ArrayList<>(category.options());
+                if (!sorted.isEmpty()) {
+                    sorted.sort(Comparator.comparingInt(Option::priority));
+                    sortedOptions.add(sorted);
                 }
             }
 
-            entree.append("\n").append(standardize(description.expanded())).append("\n");
+            for (int j = 0; j < optionDuplicates; j++) {
+                int finalJ = j;
+
+                if (j > 0 && !sortedOptions.isEmpty()) {
+                    System.out.println("Selections: " + sortedOptions.stream().map(option -> option.get(finalJ % option.size()).tag()).toList());
+                    userSelections = new UserSelections(sortedOptions.stream().map(option -> option.get(finalJ % option.size()).tag()).toList());
+                    description = new Description(description.raw());
+                    Parser.expandAndParse(description, userSelections, new Report(), true, false);
+                }
+
+                entree.append(rules.replaceAll("\\s+", " ").strip());
+
+//                entree.append(String.join(" ", sortedOptions.stream().map(option -> option.get(finalJ % option.size()).description()).toList()));
+                if (!sortedOptions.isEmpty()) {
+                    for (List<Option> option: sortedOptions) {
+                        entree.append(option.get(j % option.size())).append(" ");
+                    }
+                }
+
+                entree.append("\n").append(standardize(description.expanded())).append("\n");
+            }
 
             String entreeString = entree.toString().replace("\\", "");
-
             if (validation.contains(path.getFileName().toString()))
                 validation_dataset.append(entreeString);
             else
@@ -200,7 +208,8 @@ public class Dataset {
     }
 
     public static void main(String[] args) throws IOException {
-        new Dataset(2000).buildFlatDataset(3);
+        new Dataset(10000).buildNestedDataset();
+//        new Dataset(100).buildFlatDataset(3);
 //        List<Path> paths = new ArrayList<>(new Dataset(2000).paths);
 //        Collections.shuffle(paths);
 //        System.out.println(paths.stream().limit(300).map(p -> '"' + p.getFileName().toString() + '"').toList());

@@ -15,6 +15,6 @@ public class UsedInGrammar {
         System.out.println(trackStep);
         System.out.println(trackStep.rule());
         System.out.println(trackStep.usedInGrammar());
-        System.out.println(symbolMap.nextPossibilities(trackStep, List.of()));
+        System.out.println(symbolMap.nextValidParameters(trackStep, List.of()));
     }
 }

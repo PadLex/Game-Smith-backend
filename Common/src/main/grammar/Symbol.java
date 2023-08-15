@@ -667,6 +667,9 @@ public class Symbol
 		if (cls.isAssignableFrom(other.cls()))
 			return true;
 
+		if (other.returnType() == null)
+			return false;
+
 		if (cls.isAssignableFrom(other.returnType().cls()))
 			return true;
 		

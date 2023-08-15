@@ -20,6 +20,7 @@ public abstract class GenerationNode {
     Object compilerCache = null;
     String descriptionCache = null;
     String stringCache = null;
+    String ancestorStringCache = null;
     boolean complete;
 
     public GenerationNode(MappedSymbol symbol, GenerationNode parent) {
@@ -145,6 +146,7 @@ public abstract class GenerationNode {
         compilerCache = null;
         descriptionCache = null;
         stringCache = null;
+        ancestorStringCache = null;
     }
 
     public boolean isComplete() {
@@ -262,6 +264,39 @@ public abstract class GenerationNode {
             else
                 break;
         }
+    }
+
+    public String ancestry() {
+        if (ancestorStringCache == null) {
+            StringBuilder builder = new StringBuilder();
+            buildAncestry(builder);
+            ancestorStringCache = builder.toString();
+        }
+
+        return ancestorStringCache;
+    }
+
+    private void buildAncestry(StringBuilder builder) {
+        if (parent != null) {
+            parent.buildAncestry(builder);
+            builder.append('/').append(parent.parameterSet.indexOf(this));
+        }
+        builder.append('/').append(symbol.path());
+    }
+
+    public int depth() {
+        return parent == null ? 0 : parent.depth() + 1;
+    }
+
+    public int nodeCount() {
+        int count = complete ? 1 : 0;
+        for (GenerationNode n : parameterSet) {
+            if (n instanceof EmptyNode)
+                continue;
+            count += 1;
+            count += n.nodeCount();
+        }
+        return count;
     }
 
 }

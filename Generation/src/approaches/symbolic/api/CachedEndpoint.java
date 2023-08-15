@@ -23,6 +23,9 @@ public abstract class CachedEndpoint extends Endpoint {
         if (cachedCompilation == null || cachedCompilation.longest.isEmpty()) {
             cachedCompilation = FractionalCompiler.compileFraction(standardInput, symbolMap);
         } else {
+            if (cachedCompilation.longest.size() > 64)
+                System.out.println("Warning: " + cachedCompilation.longest.size() + " possible caches found for " + standardInput);
+
             String cachedDescription = cachedCompilation.longest.get(0).consistentGame.root().description();
             if (!standardInput.equals(cachedDescription)) {
                 if (standardInput.startsWith(cachedDescription))

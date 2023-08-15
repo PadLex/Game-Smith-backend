@@ -50,6 +50,7 @@ public class FractionalCompiler {
         }
     }
 
+
     public static class CompilationCheckpoint implements Iterable<CompilationState> {
         int longestLength = 0;
         int secondLongestLength = 0;
@@ -59,7 +60,7 @@ public class FractionalCompiler {
         public CompilationCheckpoint() {}
         public CompilationCheckpoint(GenerationNode node) {
             longest.add(new CompilationState(node, List.of()));
-            longestLength = node.root().description().length();
+            longestLength = node.nodeCount();
         }
 
         public CompilationCheckpoint(CompilationCheckpoint checkpoint) {
@@ -83,7 +84,7 @@ public class FractionalCompiler {
 //                return;
 //            }
 
-            int length = state.consistentGame.root().description().length();
+            int length = state.consistentGame.root().nodeCount();
 
 //            System.out.println("con: " + length + " - " + state.consistentGame.root().description());
 //            System.out.println("before: " + longestLength + ", " + secondLongestLength);
@@ -181,12 +182,25 @@ public class FractionalCompiler {
         HashMap<String, CompilationState> secondLongest = new HashMap<>();
         for (CompilationState state: previousCheckpoint.secondLongest) {
             state.consistentGame.stripTrailingEmptyNodes();
-            secondLongest.put(state.consistentGame.root().toString(), state);
+            String key = state.consistentGame.ancestry() + state.consistentGame.description();
+//            if (secondLongest.containsKey(key) && !secondLongest.get(key).consistentGame.root().toString().equals(state.consistentGame.root().toString())) {
+//                System.out.println("duplicate second: " + key);
+//                System.out.println("old: " + secondLongest.get(key).consistentGame.root().toString());
+//                System.out.println("new: " + state.consistentGame.root().toString());
+//            }
+
+            secondLongest.put(key, state);
         }
         for (CompilationState state: previousCheckpoint.longest) {
             state.consistentGame.stripTrailingEmptyNodes();
-            List<GenerationNode> nextOptions = state.consistentGame.nextPossibleParameters(symbolMap, null, true, false);
-            longest.put(state.consistentGame.root().toString(), state);
+            String key = state.consistentGame.ancestry() + state.consistentGame.description();
+//            if (longest.containsKey(key) && !longest.get(key).consistentGame.root().toString().equals(state.consistentGame.root().toString())) {
+//                System.out.println("duplicate longest: " + key);
+//                System.out.println("old: " + longest.get(key).consistentGame.root().toString());
+//                System.out.println("new: " + state.consistentGame.root().toString());
+//            }
+
+            longest.put(key, state);
         }
 
         for (CompilationState state: secondLongest.values()) {
@@ -200,7 +214,7 @@ public class FractionalCompiler {
         }
 
 
-            CompilationCheckpoint nextCheckpoint = new CompilationCheckpoint(previousCheckpoint);
+        CompilationCheckpoint nextCheckpoint = new CompilationCheckpoint(previousCheckpoint);
 
 
         //(game "Tablan" (players 2) (equipment {(board (rectangle 4 12) {(track "Track1" "0,E,N1,W,N1,E,N1,W" P1 directed:True) (track "Track2" "47,W,S1,E,S1,W,S1,E" P2 directed:True)} use:Vertex) (piece "Stick" Each (if (and (not (is In (from) (sites Next "Home"))) (!= 0 (mapEntry "Throw" (count Pips)))) (or (if (not (= 1 (var))) (move (from (from) if:(if (=
@@ -309,8 +323,11 @@ public class FractionalCompiler {
             option.setParent(newNode);
             newNode.addParameter(option);
 
+//            System.out.println(standardInput);
 //            System.out.println(newNode.root().description());
-            assert standardInput.startsWith(newNode.root().description());
+            if (!standardInput.startsWith(newNode.root().description()))
+                throw new MissmatchException("Now node does not match the input"); // TODO CHECK
+
             return newNode;
         }
 
@@ -383,15 +400,31 @@ public class FractionalCompiler {
         str = str.replace(" )", ")");
         str = str.replace("{ ", "{");
         str = str.replace(" }", "}");
-        str = str.replaceAll("\\s:\\s", ":"); // (forEach of : (... -> (forEach of:(...
+        str = str.replaceAll("\\s*:\\s*", ":"); // (forEach of : (... -> (forEach of:(...
         str = str.replaceAll("(?<![\\d])\\.(\\d)", "0.$1"); // .5 -> 0.5    //TODO this is not correct 1 is not 1.0
         str = str.replaceAll("(\\d+\\.\\d*?)0+\\b", "$1"); // 0.50 -> 0.5
         str = str.replaceAll("(\\d)+\\.([^0-9])", "$1$2"); // 0. -> 0
 
+        // Aliases
+        str = str.replace("(mul ", "(* ");
+        str = str.replace("(mod ", "(% ");
+        str = str.replace("(div ", "(/ ");
+//        str = str.replace("(add ", "(+ ");
+        str = str.replace("(sub ", "(- ");
+        str = str.replace("(pow ", "(^ ");
+        str = str.replace("(baseDimFunction ", "(dim ");
+        str = str.replace("(notEqual ", "(!= ");
+        str = str.replace("(ge ", "(>= ");
+        str = str.replace("(lt ", "(< ");
+        str = str.replace("(le ", "(<= ");
+        str = str.replace("(equals ", "(= ");
+        str = str.replace("(gt ", "(> ");
+
         // Constants
-        str = str.replaceAll("([ ({])Off([ )}])", "$1-1$2");
-        str = str.replaceAll("([ ({])End([ )}])", "$1-2$2");
-        str = str.replaceAll("([ ({])Undefined([ )}])", "$1-1$2");
+        str = str.replaceAll("([ ({:])Off([ )}])", "$1-1$2");
+        str = str.replaceAll("([ ({:])End([ )}])", "$1-2$2");
+        str = str.replaceAll("([ ({:])Undefined([ )}])", "$1-1$2");
+        str = str.replace("Infinity", "1000000000");
 
         return str;
     }
@@ -406,11 +439,21 @@ public class FractionalCompiler {
      */
     public static String destandardize(String original, String standard) {
         String pattern = standard;
-        pattern = pattern.replace("*", "\\*");
-        pattern = pattern.replace("%", "\\%");
-        pattern = pattern.replace("/", "\\/");
-        pattern = pattern.replace("+", "\\+");
-        pattern = pattern.replace("-", "\\-");
+        pattern = pattern.replace("*", "\\*|(mul");
+        pattern = pattern.replace("%", "\\%|(mod");
+        pattern = pattern.replace("/", "\\/|(div");
+//        pattern = pattern.replace("+", "\\+|(add");
+        pattern = pattern.replace("-", "\\-|(sub");
+        pattern = pattern.replace("=", "\\=|(equ");
+        pattern = pattern.replace("^", "\\^|(pow");
+        pattern = pattern.replace("dim", "(baseDimFunction");
+        pattern = pattern.replace("!=", "\\!\\=|(notEqual");
+        pattern = pattern.replace(">=", "\\>\\=|(ge");
+        pattern = pattern.replace("<", "\\<|(lt");
+        pattern = pattern.replace("<=", "\\<\\=|(le");
+        pattern = pattern.replace("=", "\\=|(equals");
+        pattern = pattern.replace(">", "\\>|(gt");
+
 
         pattern = pattern.replace(" ", "\\s+");
         pattern = pattern.replace("(", "\\(\\s*");
@@ -419,9 +462,10 @@ public class FractionalCompiler {
         pattern = pattern.replace("}", "\\s*\\}");
         pattern = pattern.replace(":", "\\s*:\\s*");
         pattern = pattern.replaceAll("\\d+\\.?\\d*", "\\\\d+\\\\.?\\\\d*");
-        pattern = pattern.replaceAll("[ ({]-1[ )}]", "[ ({](Off)|(-1)[ )}]");
-        pattern = pattern.replaceAll("[ ({]-2[ )}]", "[ ({](End)|(-2)[ )}]");
-        pattern = pattern.replaceAll("[ ({]-1[ )}]", "[ ({](Undefined)|(-1)[ )}]");
+        pattern = pattern.replaceAll("[ ({:]-1[ )}]", "[ ({](Off)|(-1)[ )}]");
+        pattern = pattern.replaceAll("[ ({:]-2[ )}]", "[ ({](End)|(-2)[ )}]");
+        pattern = pattern.replaceAll("[ ({:]-1[ )}]", "[ ({](Undefined)|(-1)[ )}]");
+        pattern = pattern.replace("1000000000", "[ ({:](Infinity)|(1000000000)[ )}]");
 
         Matcher matcher = Pattern.compile(pattern).matcher(original);
 

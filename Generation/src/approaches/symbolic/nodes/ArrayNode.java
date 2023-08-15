@@ -47,7 +47,7 @@ public class ArrayNode extends GenerationNode {
                     options.add(new PrimitiveNode(new MappedSymbol(symbol, 0, null), this));
                 }
                 default -> {
-                    options.addAll(symbolMap.getCompatibleSymbols(symbol).stream().map(s -> fromSymbol(new MappedSymbol(s, null), this)).toList());
+                    options.addAll(symbolMap.getInstantiableSymbols(symbol).stream().map(s -> fromSymbol(new MappedSymbol(s, null), this)).toList());
                 }
             }
         } else {

@@ -1,0 +1,45 @@
+
+
+FractionalCompilerEndpoint - 1692133784546 - Error:
+Raw Input:
+(game "Nyout" (players 2) (equipment {(board (concentric { 1 -4
+Message:
+Crashed: Unclosed group near index 145
+\(\s*game\s+"Nyout"\s+\(\s*players\s+\d+\.?\d*\s*\)\s+\(\s*equipment\s+\{\s*\(\s*board\s+\(\s*concentric\s+\{\s*\d+\.?\d*\s+\-|\\(\s*sub\d+\.?\d*
+java.util.regex.PatternSyntaxException: Unclosed group near index 145
+\(\s*game\s+"Nyout"\s+\(\s*players\s+\d+\.?\d*\s*\)\s+\(\s*equipment\s+\{\s*\(\s*board\s+\(\s*concentric\s+\{\s*\d+\.?\d*\s+\-|\\(\s*sub\d+\.?\d*
+	at java.base/java.util.regex.Pattern.error(Pattern.java:2045)
+	at java.base/java.util.regex.Pattern.accept(Pattern.java:1895)
+	at java.base/java.util.regex.Pattern.group0(Pattern.java:3072)
+	at java.base/java.util.regex.Pattern.sequence(Pattern.java:2141)
+	at java.base/java.util.regex.Pattern.expr(Pattern.java:2086)
+	at java.base/java.util.regex.Pattern.compile(Pattern.java:1798)
+	at java.base/java.util.regex.Pattern.<init>(Pattern.java:1445)
+	at java.base/java.util.regex.Pattern.compile(Pattern.java:1084)
+	at approaches.symbolic.FractionalCompiler.destandardize(FractionalCompiler.java:470)
+	at approaches.symbolic.api.FractionalCompilerEndpoint.cachedResponse(FractionalCompilerEndpoint.java:42)
+	at approaches.symbolic.api.CachedEndpoint.respond(CachedEndpoint.java:38)
+	at approaches.symbolic.api.Endpoint.start(Endpoint.java:38)
+	at approaches.symbolic.api.FractionalCompilerEndpoint.main(FractionalCompilerEndpoint.java:19)
+
+FractionalCompilerEndpoint - 1692133939713 - Error:
+Raw Input:
+(game "Nyout" (players 2) (equipment {(board (concentric { 1 -4
+Message:
+Crashed: Unclosed group near index 145
+\(\s*game\s+"Nyout"\s+\(\s*players\s+\d+\.?\d*\s*\)\s+\(\s*equipment\s+\{\s*\(\s*board\s+\(\s*concentric\s+\{\s*\d+\.?\d*\s+\-|\\(\s*sub\d+\.?\d*
+java.util.regex.PatternSyntaxException: Unclosed group near index 145
+\(\s*game\s+"Nyout"\s+\(\s*players\s+\d+\.?\d*\s*\)\s+\(\s*equipment\s+\{\s*\(\s*board\s+\(\s*concentric\s+\{\s*\d+\.?\d*\s+\-|\\(\s*sub\d+\.?\d*
+	at java.base/java.util.regex.Pattern.error(Pattern.java:2045)
+	at java.base/java.util.regex.Pattern.accept(Pattern.java:1895)
+	at java.base/java.util.regex.Pattern.group0(Pattern.java:3072)
+	at java.base/java.util.regex.Pattern.sequence(Pattern.java:2141)
+	at java.base/java.util.regex.Pattern.expr(Pattern.java:2086)
+	at java.base/java.util.regex.Pattern.compile(Pattern.java:1798)
+	at java.base/java.util.regex.Pattern.<init>(Pattern.java:1445)
+	at java.base/java.util.regex.Pattern.compile(Pattern.java:1084)
+	at approaches.symbolic.FractionalCompiler.destandardize(FractionalCompiler.java:470)
+	at approaches.symbolic.api.FractionalCompilerEndpoint.cachedResponse(FractionalCompilerEndpoint.java:42)
+	at approaches.symbolic.api.CachedEndpoint.respond(CachedEndpoint.java:38)
+	at approaches.symbolic.api.Endpoint.start(Endpoint.java:38)
+	at approaches.symbolic.api.FractionalCompilerEndpoint.main(FractionalCompilerEndpoint.java:19)

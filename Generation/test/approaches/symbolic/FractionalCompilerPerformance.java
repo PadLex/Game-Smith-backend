@@ -18,9 +18,9 @@ import static approaches.symbolic.FractionalCompiler.*;
 
 public class FractionalCompilerPerformance {
     static void testLudiiLibrary(SymbolMap symbolMap, int start, int limit) throws IOException {
-        List<String> skip = List.of("Kriegspiel (Chess).lud", "Throngs.lud", "Tai Shogi.lud", "Taikyoku Shogi.lud", "Yonin Seireigi.lud", "Yonin Shogi.lud", "MensaSpiel.lud", "Kriegsspiel.lud", "Mini Wars.lud"); // "To Kinegi tou Lagou.lud"
+        List<String> skip = List.of("Kriegspiel (Chess).lud", "Throngs.lud", "Tai Shogi.lud", "Taikyoku Shogi.lud", "Yonin Seireigi.lud", "Yonin Shogi.lud", "MensaSpiel.lud", "Kriegsspiel.lud", "Mini Wars.lud", "Netted.lud"); // "To Kinegi tou Lagou.lud"
 
-        String gamesRoot = "./Common/res/lud/board";
+        String gamesRoot = "./Common/res/lud/good";
         List<Path> paths = Files.walk(Paths.get(gamesRoot)).filter(Files::isRegularFile).filter(path -> path.toString().endsWith(".lud")).sorted().limit(limit).toList();
         int count = 0;
         int preCompilation = 0;
@@ -120,7 +120,7 @@ public class FractionalCompilerPerformance {
 
     public static void main(String[] args) throws IOException {
         CachedMap symbolMapper = new CachedMap();
-        testLudiiLibrary(symbolMapper, 0, 100);
+        testLudiiLibrary(symbolMapper, 496, 2000);
         System.out.println("cache:" + symbolMapper.cachedQueries.size());
 
 //        String gameName = "Choro (Acholi).lud"; // TODO Throngs (memory error), There and Back, Pyrga, There and Back, Kriegspiel (Chess), Tai Shogi

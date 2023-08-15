@@ -55,7 +55,7 @@
 (game "Nyout" 
     (players <Players:num>) 
     (equipment { 
-        (board (concentric {1 -4 -4 20}) 
+        (board (concentric {1 -4 -4 20})
             {
             <Players:tracks>
             (track "HorizontalTrack" {13 5 1 0 3 7 23..28} directed:True)

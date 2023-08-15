@@ -13,12 +13,12 @@ public class CachedMap extends SymbolMap {
     public Map<String, List<MappedSymbol>> cachedQueries = new HashMap<>();
 
     @Override
-    public List<MappedSymbol> nextPossibilities(Symbol parent, List<? extends Symbol> partialArguments) {
+    public List<MappedSymbol> nextValidParameters(Symbol parent, List<? extends Symbol> partialArguments) {
         String key = buildKey(parent, partialArguments);
         List<MappedSymbol> cachedSymbols = cachedQueries.get(key);
 
         if (cachedSymbols == null) {
-            cachedSymbols = super.nextPossibilities(parent, partialArguments);
+            cachedSymbols = super.nextValidParameters(parent, partialArguments);
             cachedQueries.put(key, cachedSymbols);
         }
 
