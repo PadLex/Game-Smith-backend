@@ -14,7 +14,7 @@ public class EnumNode extends GenerationNode {
         super(symbol, parent);
     }
 
-    Object instantiate() {
+    Object instantiateLudeme() {
         try {
             return symbol.cls().getMethod("valueOf", String.class).invoke(null, symbol.name());
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {

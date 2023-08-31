@@ -137,7 +137,7 @@ public class Dataset {
             for (OptionCategory category: description.gameOptions().categories()) {
                 List<Option> sorted = new ArrayList<>(category.options());
                 if (!sorted.isEmpty()) {
-                    sorted.sort(Comparator.comparingInt(Option::priority));
+                    sorted.sort(Comparator.comparingInt(o -> -o.priority()));
                     sortedOptions.add(sorted);
                 }
             }
@@ -146,8 +146,8 @@ public class Dataset {
                 int finalJ = j;
 
                 if (j > 0 && !sortedOptions.isEmpty()) {
-                    System.out.println("Selections: " + sortedOptions.stream().map(option -> option.get(finalJ % option.size()).tag()).toList());
-                    userSelections = new UserSelections(sortedOptions.stream().map(option -> option.get(finalJ % option.size()).tag()).toList());
+//                    System.out.println("Selections: " + sortedOptions.stream().map(option -> String.join("/", option.get(finalJ % option.size()).menuHeadings())).toList());
+                    userSelections = new UserSelections(sortedOptions.stream().map(option -> String.join("/", option.get(finalJ % option.size()).menuHeadings())).toList());
                     description = new Description(description.raw());
                     Parser.expandAndParse(description, userSelections, new Report(), true, false);
                 }
@@ -157,7 +157,8 @@ public class Dataset {
 //                entree.append(String.join(" ", sortedOptions.stream().map(option -> option.get(finalJ % option.size()).description()).toList()));
                 if (!sortedOptions.isEmpty()) {
                     for (List<Option> option: sortedOptions) {
-                        entree.append(option.get(j % option.size())).append(" ");
+//                        entree.append(option.get(j % option.size()).description().replaceAll("\\s+", " ").strip()).append(" ");
+                        entree.append(" ").append(option.get(j % option.size()).description().strip());
                     }
                 }
 
@@ -208,8 +209,8 @@ public class Dataset {
     }
 
     public static void main(String[] args) throws IOException {
-        new Dataset(10000).buildNestedDataset();
-//        new Dataset(100).buildFlatDataset(3);
+//        new Dataset(10000).buildNestedDataset();
+        new Dataset(1000).buildFlatDataset(3);
 //        List<Path> paths = new ArrayList<>(new Dataset(2000).paths);
 //        Collections.shuffle(paths);
 //        System.out.println(paths.stream().limit(300).map(p -> '"' + p.getFileName().toString() + '"').toList());

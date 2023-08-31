@@ -13,7 +13,7 @@ public class EndOfClauseNode extends GenerationNode {
     }
 
     @Override
-    Object instantiate() {
+    Object instantiateLudeme() {
         throw new RuntimeException("EndOfClauseNode should never be instantiated");
     }
 

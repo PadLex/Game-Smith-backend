@@ -18,8 +18,8 @@ public class ArrayNode extends GenerationNode {
         assert symbol.nesting() > 0;
     }
 
-    Object instantiate() {
-        List<Object> arguments = parameterSet.stream().filter(Objects::nonNull).map(GenerationNode::compile).toList();
+    Object instantiateLudeme() {
+        List<Object> arguments = parameterSet.stream().filter(Objects::nonNull).map(GenerationNode::instantiate).toList();
 
         Object array;
         if (symbol.nesting() == 1)
@@ -80,7 +80,7 @@ public class ArrayNode extends GenerationNode {
         if (complete)
             close = "}";
 
-        return label + "{" + String.join(" ", parameterSet.stream().filter(s -> !(s instanceof EmptyNode || s instanceof EndOfClauseNode)).map(GenerationNode::description).toList()) + close;
+        return label + "{" + String.join(" ", parameterSet.stream().filter(s -> !(s instanceof PlaceholderNode || s instanceof EndOfClauseNode)).map(GenerationNode::description).toList()) + close;
     }
 
 }

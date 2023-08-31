@@ -10,6 +10,7 @@ import java.util.Map;
  * Extends SymbolMapper by memoizing the results of the nextPossibilities method.
  */
 public class CachedMap extends SymbolMap {
+    public long requests = 0;
     public Map<String, List<MappedSymbol>> cachedQueries = new HashMap<>();
 
     @Override
@@ -22,6 +23,7 @@ public class CachedMap extends SymbolMap {
             cachedQueries.put(key, cachedSymbols);
         }
 
+        requests++;
         return cachedSymbols;
     }
 

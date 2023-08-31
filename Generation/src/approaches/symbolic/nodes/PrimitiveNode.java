@@ -56,7 +56,7 @@ public class PrimitiveNode extends GenerationNode {
         };
     }
 
-    Object instantiate() {
+    Object instantiateLudeme() {
         return value;
     }
 

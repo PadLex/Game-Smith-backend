@@ -3,10 +3,11 @@ package approaches.symbolic.api;
 import approaches.symbolic.nodes.GameNode;
 import supplementary.experiments.eval.EvalGames;
 
-import java.util.List;
-
 import static approaches.symbolic.FractionalCompiler.*;
 
+/**
+ * Provides a thorough evaluation of a game description.
+ */
 public class ThoroughEvaluationEndpoint extends CachedEndpoint {
     public static void main(String[] args) {
         new ThoroughEvaluationEndpoint().start();
@@ -20,6 +21,6 @@ public class ThoroughEvaluationEndpoint extends CachedEndpoint {
             return "";
 
         GameNode gameNode = partialCompilation.longest.get(0).consistentGame.root();
-        return String.valueOf(EvalGames.defaultEvaluationSlow(gameNode.compile()));
+        return String.valueOf(EvalGames.defaultEvaluationSlow(gameNode.instantiate()));
     }
 }

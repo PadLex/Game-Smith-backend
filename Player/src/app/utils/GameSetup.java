@@ -36,6 +36,7 @@ public class GameSetup
 		
 		try
 		{
+			System.out.println("Compiling game...\n" + desc);
 			final Game game = (Game)Compiler.compile(gameDescription, app.manager().settingsManager().userSelections(), report, debug);
 			app.manager().ref().setGame(app.manager(), game);			
 			

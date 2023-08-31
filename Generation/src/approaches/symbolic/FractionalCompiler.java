@@ -181,7 +181,7 @@ public class FractionalCompiler {
         HashMap<String, CompilationState> longest = new HashMap<>();
         HashMap<String, CompilationState> secondLongest = new HashMap<>();
         for (CompilationState state: previousCheckpoint.secondLongest) {
-            state.consistentGame.stripTrailingEmptyNodes();
+            state.consistentGame.stripTrailingPlaceholderNodes();
             String key = state.consistentGame.ancestry() + state.consistentGame.description();
 //            if (secondLongest.containsKey(key) && !secondLongest.get(key).consistentGame.root().toString().equals(state.consistentGame.root().toString())) {
 //                System.out.println("duplicate second: " + key);
@@ -192,7 +192,7 @@ public class FractionalCompiler {
             secondLongest.put(key, state);
         }
         for (CompilationState state: previousCheckpoint.longest) {
-            state.consistentGame.stripTrailingEmptyNodes();
+            state.consistentGame.stripTrailingPlaceholderNodes();
             String key = state.consistentGame.ancestry() + state.consistentGame.description();
 //            if (longest.containsKey(key) && !longest.get(key).consistentGame.root().toString().equals(state.consistentGame.root().toString())) {
 //                System.out.println("duplicate longest: " + key);
@@ -262,7 +262,8 @@ public class FractionalCompiler {
      * @param node The game to append to
      * @param option The option to append
      * @param standardInput The standardized description
-     * @return The new game, or null if the option is not consistent with the standardInput description
+     * @return The new game
+     * @throws MissmatchException If the option is not consistent with the standardInput description
      */
     static GenerationNode appendOption(GenerationNode node, GenerationNode option, String standardInput) throws InternalException {
         String currentDescription = node.root().description();
@@ -334,7 +335,7 @@ public class FractionalCompiler {
         // Parse non-primitive options
         else {
             // option.description accounts for the label already
-            if (!(option instanceof EmptyNode) && !(option instanceof EndOfClauseNode)) {
+            if (!(option instanceof PlaceholderNode) && !(option instanceof EndOfClauseNode)) {
 
 //                System.out.println("trailingDescription:" + trailingDescription);
 //                System.out.println("option:" + option.description());
@@ -375,7 +376,7 @@ public class FractionalCompiler {
                     return nodeCopy;
 
                 try {
-                    nodeCopy.compile();
+                    nodeCopy.instantiate();
                 } catch (Exception e) {
                     throw new CompilationException(e.getMessage());
                 }
@@ -395,6 +396,7 @@ public class FractionalCompiler {
      * @return The standardized description
      */
     public static String standardize(String str) {
+        str = str.stripLeading();
         str = str.replaceAll("\\s+", " ");
         str = str.replace("( ", "(");
         str = str.replace(" )", ")");
@@ -406,19 +408,20 @@ public class FractionalCompiler {
         str = str.replaceAll("(\\d)+\\.([^0-9])", "$1$2"); // 0. -> 0
 
         // Aliases
-        str = str.replace("(mul ", "(* ");
-        str = str.replace("(mod ", "(% ");
-        str = str.replace("(div ", "(/ ");
-//        str = str.replace("(add ", "(+ ");
-        str = str.replace("(sub ", "(- ");
-        str = str.replace("(pow ", "(^ ");
+        str = str.replace("(* ", "(mul ");
+        str = str.replace("(% ", "(mod ");
+        str = str.replace("(/ ", "(div ");
+        str = str.replace("(+ ", "(add ");
+        str = str.replace("(- ", "(sub ");
+        str = str.replace("(^ ", "(pow ");
         str = str.replace("(baseDimFunction ", "(dim ");
-        str = str.replace("(notEqual ", "(!= ");
-        str = str.replace("(ge ", "(>= ");
-        str = str.replace("(lt ", "(< ");
-        str = str.replace("(le ", "(<= ");
-        str = str.replace("(equals ", "(= ");
-        str = str.replace("(gt ", "(> ");
+        str = str.replace("(!= ", "(notEqual ");
+        str = str.replace("(>= ", "(ge ");
+        str = str.replace("(< ", "(lt ");
+        str = str.replace("(<= ", "(le ");
+        str = str.replace("(= ", "(equals ");
+        str = str.replace("(> ", "(gt ");
+
 
         // Constants
         str = str.replaceAll("([ ({:])Off([ )}])", "$1-1$2");
@@ -439,21 +442,6 @@ public class FractionalCompiler {
      */
     public static String destandardize(String original, String standard) {
         String pattern = standard;
-        pattern = pattern.replace("*", "\\*|(mul");
-        pattern = pattern.replace("%", "\\%|(mod");
-        pattern = pattern.replace("/", "\\/|(div");
-//        pattern = pattern.replace("+", "\\+|(add");
-        pattern = pattern.replace("-", "\\-|(sub");
-        pattern = pattern.replace("=", "\\=|(equ");
-        pattern = pattern.replace("^", "\\^|(pow");
-        pattern = pattern.replace("dim", "(baseDimFunction");
-        pattern = pattern.replace("!=", "\\!\\=|(notEqual");
-        pattern = pattern.replace(">=", "\\>\\=|(ge");
-        pattern = pattern.replace("<", "\\<|(lt");
-        pattern = pattern.replace("<=", "\\<\\=|(le");
-        pattern = pattern.replace("=", "\\=|(equals");
-        pattern = pattern.replace(">", "\\>|(gt");
-
 
         pattern = pattern.replace(" ", "\\s+");
         pattern = pattern.replace("(", "\\(\\s*");
@@ -467,7 +455,27 @@ public class FractionalCompiler {
         pattern = pattern.replaceAll("[ ({:]-1[ )}]", "[ ({](Undefined)|(-1)[ )}]");
         pattern = pattern.replace("1000000000", "[ ({:](Infinity)|(1000000000)[ )}]");
 
+        pattern = pattern.replace("\\(\\s*mul\\s+", "\\(\\s*(mul|\\*)\\s+");
+        pattern = pattern.replace("\\(\\s*mod\\s+", "\\(\\s*(mod|%)\\s+");
+        pattern = pattern.replace("\\(\\s*div\\s+", "\\(\\s*(div|/)\\s+");
+        pattern = pattern.replace("\\(\\s*add\\s+", "\\(\\s*(add|\\+)\\s+");
+        pattern = pattern.replace("\\(\\s*sub\\s+", "\\(\\s*(sub|-)\\s+");
+        pattern = pattern.replace("\\(\\s*pow\\s+", "\\(\\s*(pow|\\^)\\s+");
+        pattern = pattern.replace("\\(\\s*dim\\s+", "\\(\\s*(baseDimFunction|dim)\\s+");
+        pattern = pattern.replace("\\(\\s*notEqual\\s+", "\\(\\s*(notEqual|!=)\\s+");
+        pattern = pattern.replace("\\(\\s*ge\\s+", "\\(\\s*(ge|>=)\\s+");
+        pattern = pattern.replace("\\(\\s*lt\\s+", "\\(\\s*(lt|<)\\s+");
+        pattern = pattern.replace("\\(\\s*le\\s+", "\\(\\s*(le|<=)\\s+");
+        pattern = pattern.replace("\\(\\s*equals\\s+", "\\(\\s*(equals|=)\\s+");
+        pattern = pattern.replace("\\(\\s*gt\\s+", "\\(\\s*(gt|>)\\s+");
+
+        System.out.println("Pattern: " + pattern);
+
+        pattern = "\\s*" + pattern;
+
         Matcher matcher = Pattern.compile(pattern).matcher(original);
+
+
 
         if (matcher.lookingAt())
             return original.substring(0, matcher.end());

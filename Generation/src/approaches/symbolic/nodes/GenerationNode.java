@@ -48,7 +48,7 @@ public abstract class GenerationNode {
 
         switch (symbol.path()) {
             case "mapper.unused" -> {
-                return new EmptyNode(parent);
+                return new PlaceholderNode(parent);
             }
             case "mapper.endOfClause" -> {
                 return new EndOfClauseNode(parent);
@@ -66,14 +66,18 @@ public abstract class GenerationNode {
      * ludeme once.
      * @return The compiled ludeme.
      */
-    public Object compile() {
+    public Object instantiate() {
         if (compilerCache == null)
-            compilerCache = instantiate();
+            compilerCache = instantiateLudeme();
 
         return compilerCache;
     }
 
-    abstract Object instantiate();
+    public boolean isCached() {
+        return compilerCache != null;
+    }
+
+    abstract Object instantiateLudeme();
 
     public abstract List<GenerationNode> nextPossibleParameters(SymbolMap symbolMap);
 
@@ -94,7 +98,7 @@ public abstract class GenerationNode {
 
         // Expand empty nodes
         if (expandEmpty) {
-            EmptyNode empty = options.stream().filter(n -> n instanceof EmptyNode).map(n -> (EmptyNode) n).findFirst().orElse(null);
+            PlaceholderNode empty = options.stream().filter(n -> n instanceof PlaceholderNode).map(n -> (PlaceholderNode) n).findFirst().orElse(null);
             if (empty != null) {
                 options.remove(empty);
                 List<GenerationNode> nextPartialArguments = partialArguments==null? new ArrayList<>() : new ArrayList<>(partialArguments);
@@ -257,9 +261,9 @@ public abstract class GenerationNode {
 //        return 1 + parameterSet.stream().mapToInt(GenerationNode::nodeCount).sum();
 //    }
 
-    public void stripTrailingEmptyNodes() {
+    public void stripTrailingPlaceholderNodes() {
         for (int i=parameterSet.size()-1; i >= 0; i--) {
-            if (parameterSet.get(i) instanceof EmptyNode)
+            if (parameterSet.get(i) instanceof PlaceholderNode)
                 parameterSet.remove(i);
             else
                 break;
@@ -291,7 +295,7 @@ public abstract class GenerationNode {
     public int nodeCount() {
         int count = complete ? 1 : 0;
         for (GenerationNode n : parameterSet) {
-            if (n instanceof EmptyNode)
+            if (n instanceof PlaceholderNode)
                 continue;
             count += 1;
             count += n.nodeCount();

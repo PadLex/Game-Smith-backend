@@ -1,8 +1,6 @@
 package approaches.symbolic.api;
 
-import approaches.symbolic.CachedMap;
 import approaches.symbolic.FractionalCompiler;
-import approaches.symbolic.SymbolMap;
 import approaches.symbolic.nodes.*;
 
 import java.util.*;
@@ -10,7 +8,7 @@ import java.util.*;
 public class AutocompleteEndpoint extends CachedEndpoint {
 
     // Compiles the game as far as it goes and returns all completions that start with the input's tail
-    Collection<String> autocomplete(String standardInput) {
+    Collection<String> findCompletions(String standardInput) {
         if ("(gam".startsWith(standardInput))
             return List.of("(game".substring(standardInput.length()));
 
@@ -45,16 +43,16 @@ public class AutocompleteEndpoint extends CachedEndpoint {
                         completion = " " + completion;
 
                     completions.add(completion);
-//                } else if (option instanceof EndOfClauseNode) {
-//                    if (node.root().description().length() + 1 < standardInput.length()) continue;
-//                    completions.addAll(consecutiveClosingBrackets(node));
-//                } else if (option instanceof ArrayNode) {
-//                    String description = option.root().description();
-//                    if (description.length() < standardInput.length()) continue;
-//
-//                    String label = description.substring(standardInput.length());
-//
-//                    completions.add(label + "{".repeat(option.symbol().nesting()-1));
+                } else if (option instanceof EndOfClauseNode) {
+                    if (node.root().description().length() + 1 < standardInput.length()) continue;
+                    completions.addAll(consecutiveClosingBrackets(node));
+                } else if (option instanceof ArrayNode) {
+                    String description = option.root().description();
+                    if (description.length() < standardInput.length()) continue;
+
+                    String label = description.substring(standardInput.length());
+
+                    completions.add(label + "{".repeat(option.symbol().nesting()-1));
                 } else {
                     String description = option.root().description();
                     if (description.length() < standardInput.length()) continue;
@@ -120,17 +118,17 @@ public class AutocompleteEndpoint extends CachedEndpoint {
         List<GenerationNode> completions = new ArrayList<>();
 
         for (GenerationNode option: node.nextPossibleParameters(symbolMap, null, false, true)) {
-            assert !(option instanceof EmptyNode);
+            assert !(option instanceof PlaceholderNode);
 
 //            System.out.println("option " + (option.symbol().label == null? "":option.symbol().label) + ":" + option);
 
             // Verify whether the option is compatible with the tail
             if (option instanceof PrimitiveNode primitiveOption) {
-                PrimitiveNode builtOption = buildPrimitive(primitiveOption, tail);
-                if (builtOption != null) {
+                PrimitiveNode verifiedPrimitive = verifyPrimitive(primitiveOption, tail);
+                if (verifiedPrimitive != null) {
                     GenerationNode newNode = node.copyUp();
-                    newNode.addParameter(builtOption);
-                    completions.add(builtOption);
+                    newNode.addParameter(verifiedPrimitive);
+                    completions.add(verifiedPrimitive);
                 }
             } else if (option instanceof EndOfClauseNode) {
                 if (tail.isEmpty()) {
@@ -150,7 +148,7 @@ public class AutocompleteEndpoint extends CachedEndpoint {
         return completions;
     }
 
-    PrimitiveNode buildPrimitive(PrimitiveNode primitiveOption, String tail) {
+    PrimitiveNode verifyPrimitive(PrimitiveNode primitiveOption, String tail) {
         if (tail.isEmpty())
             return primitiveOption;
 
@@ -225,7 +223,7 @@ public class AutocompleteEndpoint extends CachedEndpoint {
         if (!cachedCompilation.longest.isEmpty() && cachedCompilation.longest.get(0).consistentGame instanceof GameNode && cachedCompilation.longest.get(0).consistentGame.isRecursivelyComplete())
             return "COMPLETE!";
 
-        for (String completion : autocomplete(standardInput)) {
+        for (String completion : findCompletions(standardInput)) {
             //assert option.root().description().startsWith(standardInput);
 
             if (!completions.contains(completion) && !completion.isEmpty()) {

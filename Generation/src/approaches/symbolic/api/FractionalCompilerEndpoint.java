@@ -3,8 +3,6 @@ package approaches.symbolic.api;
 import approaches.symbolic.nodes.GameNode;
 import supplementary.experiments.eval.EvalGames;
 
-import java.util.List;
-
 import static approaches.symbolic.FractionalCompiler.*;
 
 /*
@@ -33,12 +31,14 @@ public class FractionalCompilerEndpoint extends CachedEndpoint {
         double eval = 0;
         try {
             if (compiles)
-                eval = EvalGames.defaultEvaluationFast(gameNode.compile());
+                eval = EvalGames.defaultEvaluationFast(gameNode.instantiate());
         } catch (Exception internalError) {
             eval = 0;
             internalError.printStackTrace();
         }
-
-        return (compiles ? "1":"0") + '|' + eval + "|" + destandardize(rawInput, compilingPortion);
+        
+        String response = (compiles ? "1":"0") + '|' + eval + "|" + destandardize(rawInput, compilingPortion);
+        log("Autocomplete response", response);
+        return response;
     }
 }

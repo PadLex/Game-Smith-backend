@@ -17,8 +17,8 @@ public class ClassNode extends GenerationNode {
         assert !symbol.path().equals("game.Game");
     }
 
-    Object instantiate() {
-        List<Object> arguments = parameterSet.stream().map(param -> param != null? param.compile():null).toList();
+    Object instantiateLudeme() {
+        List<Object> arguments = parameterSet.stream().map(param -> param != null? param.instantiate():null).toList();
 
         // TODO how to know whether to use constructor or static .construct();
         for (Method method: symbol.cls().getMethods()) {
@@ -60,7 +60,7 @@ public class ClassNode extends GenerationNode {
         if (symbol.label != null)
             label = symbol.label + ":";
 
-        String parameterString = String.join(" ", parameterSet.stream().filter(s -> !(s instanceof EmptyNode || s instanceof EndOfClauseNode)).map(GenerationNode::description).toList());
+        String parameterString = String.join(" ", parameterSet.stream().filter(s -> !(s instanceof PlaceholderNode || s instanceof EndOfClauseNode)).map(GenerationNode::description).toList());
         if (parameterString.length() > 0)
             parameterString = " " + parameterString;
 

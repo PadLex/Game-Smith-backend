@@ -164,6 +164,8 @@ public class GameLoading
 		try
 		{
 			final String gameDescriptionString = getGameDescriptionRawFromName(app, name);
+			System.out.println("Loading game from name: " + name);
+			System.out.println("Game description string: " + gameDescriptionString);
 			
 			if (gameDescriptionString == null)
 			{
@@ -191,6 +193,9 @@ public class GameLoading
 	 */
 	public static String getGameDescriptionRawFromName(final PlayerApp app, final String name)
 	{
+		if (new File(name).exists())
+			return null;
+
 		final String filePath = GameLoader.getFilePath(name);
 		
 		// Probably loading from an external .lud file.

@@ -35,20 +35,22 @@ public class GameNode extends GenerationNode {
     }
 
     @Override
-    public Game compile() {
+    public Game instantiate() {
+        boolean wasCached = this.equipmentNode().isCached();
         if (compilerCache != null) return (Game) compilerCache;
-        Game game = instantiate();
+        Game game = instantiateLudeme();
 
         game.setDescription(new Description(description()));
-        game.create(); // TODO skip this step if recompiling rules only
+
+        game.create();
 
         compilerCache = game;
         return (Game) compilerCache;
     }
 
     @Override
-    Game instantiate() {
-        return new Game((String) nameNode().compile(), (Players) playersNode().compile(), modeNode() != null ? (Mode) modeNode().compile() : null, (Equipment) equipmentNode().compile(), (Rules) rulesNode().compile());
+    Game instantiateLudeme() {
+        return new Game((String) nameNode().instantiate(), (Players) playersNode().instantiate(), modeNode() != null ? (Mode) modeNode().instantiate() : null, (Equipment) equipmentNode().instantiate(), (Rules) rulesNode().instantiate());
     }
 
     @Override
@@ -64,7 +66,7 @@ public class GameNode extends GenerationNode {
             }
             case 2 -> {
                 ArrayList<GenerationNode> options = new ArrayList<>(2);
-                options.add(new EmptyNode(this));
+                options.add(new PlaceholderNode(this));
                 options.add(new ClassNode(modeSymbol, this));
                 return options;
             }
@@ -100,7 +102,7 @@ public class GameNode extends GenerationNode {
 
     @Override
     String buildDescription() {
-        String parameterString = String.join(" ", parameterSet.stream().filter(s -> !(s instanceof EmptyNode || s instanceof EndOfClauseNode)).map(GenerationNode::description).toList());
+        String parameterString = String.join(" ", parameterSet.stream().filter(s -> !(s instanceof PlaceholderNode || s instanceof EndOfClauseNode)).map(GenerationNode::description).toList());
         if (parameterString.length() > 0)
             parameterString = " " + parameterString;
 

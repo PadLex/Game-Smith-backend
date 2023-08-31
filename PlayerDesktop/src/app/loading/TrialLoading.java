@@ -110,6 +110,7 @@ public class TrialLoading
 	 */
 	public static void loadTrial(final PlayerApp app, final File file, final boolean debug)
 	{
+		System.out.println("Loading trial: " + file.getAbsolutePath());
 		try
 		{
 			// load game path and options from file first
@@ -118,6 +119,8 @@ public class TrialLoading
 				final String gamePathLine = reader.readLine();
 				final String loadedGamePath = gamePathLine.substring("game=".length());
 				final List<String> gameOptions = new ArrayList<>();
+
+				System.out.println("Loading game: " + loadedGamePath);
 
 				String nextLine = reader.readLine();
 				boolean endOptionsFound = false;

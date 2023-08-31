@@ -5,7 +5,6 @@ import compiler.Compiler;
 import main.grammar.Description;
 import main.grammar.Report;
 import main.options.UserSelections;
-import other.GameLoader;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -66,7 +65,7 @@ public class FractionalCompilerPerformance {
             GameNode rootNode;
             try {
                 rootNode = compileComplete(standardize(description.expanded()), symbolMap);
-                rootNode.compile();
+                rootNode.instantiate();
             } catch (Exception e) {
                 System.out.println("Could not compile description " + path.getFileName());
                 System.out.println(e.getMessage());
@@ -79,7 +78,7 @@ public class FractionalCompilerPerformance {
 
             try {
                 rootNode.rulesNode().clearCache();
-                rootNode.compile();
+                rootNode.instantiate();
             } catch (Exception e) {
                 System.out.println("Could not recompile " + path.getFileName());
                 throw e;
@@ -120,10 +119,11 @@ public class FractionalCompilerPerformance {
 
     public static void main(String[] args) throws IOException {
         CachedMap symbolMapper = new CachedMap();
-        testLudiiLibrary(symbolMapper, 496, 2000);
-        System.out.println("cache:" + symbolMapper.cachedQueries.size());
+        testLudiiLibrary(symbolMapper, 0, 2000);
+        System.out.println("cache:" + symbolMapper.cachedQueries.size() + " of " + symbolMapper.requests);
 
-//        String gameName = "Choro (Acholi).lud"; // TODO Throngs (memory error), There and Back, Pyrga, There and Back, Kriegspiel (Chess), Tai Shogi
+//        String gameName = "Netted.lud";
+////        Path gamePath = Files.walk(Paths.get("./Common/res/lud/good")).filter(Files::isRegularFile).filter(path -> path.toString().endsWith(gameName)).findAny().orElseThrow();
 //        Description description = new Description(Files.readString(Path.of("./Common/res/" + GameLoader.getFilePath(gameName))));
 //        Compiler.compile(description, new UserSelections(new ArrayList<>()), new Report(), false);
 //        System.out.println(standardize(description.expanded()));

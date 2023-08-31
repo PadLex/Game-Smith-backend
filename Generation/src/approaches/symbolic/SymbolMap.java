@@ -19,7 +19,7 @@ import java.util.stream.Stream;
  * @author Alexander Padula
  */
 public class SymbolMap {
-    public static final MappedSymbol emptySymbol = new EmptySymbol();
+    public static final MappedSymbol placeholderSymbol = new PlaceholderSymbol();
     public static final MappedSymbol endOfClauseSymbol = new EndOfClauseSymbol();
 
     // TODO do I need to add RegionConstant?
@@ -136,7 +136,7 @@ public class SymbolMap {
             }
         }
 
-        instantiableMap.put(emptySymbol.path(), List.of(emptySymbol));
+        instantiableMap.put(placeholderSymbol.path(), List.of(placeholderSymbol));
         instantiableMap.put(endOfClauseSymbol.path(), List.of(endOfClauseSymbol));
     }
 
@@ -226,7 +226,7 @@ public class SymbolMap {
                             continue;
 
                         clauseSymbols.add(new MappedSymbol(arg.symbol(), arg.nesting(), label)); //TODO: check if label should be lower case
-                    } else clauseSymbols.add(emptySymbol);
+                    } else clauseSymbols.add(placeholderSymbol);
                 }
 
                 clauseSymbols.add(endOfClauseSymbol);
@@ -236,7 +236,7 @@ public class SymbolMap {
 
         // filter for out-of-vocabulary symbols and duplicates
         Stream<List<MappedSymbol>> parameterStream = constructorSets.stream().distinct();
-        parameterStream = parameterStream.filter(l -> paths.containsAll(l.stream().filter(s -> s != emptySymbol && s != endOfClauseSymbol).map(Symbol::path).toList()));
+        parameterStream = parameterStream.filter(l -> paths.containsAll(l.stream().filter(s -> s != placeholderSymbol && s != endOfClauseSymbol).map(Symbol::path).toList()));
 
         return parameterStream.toList();
     }
@@ -320,14 +320,14 @@ public class SymbolMap {
     /**
      * Used in place of a null value when a parameter is unused
      */
-    static class EmptySymbol extends MappedSymbol {
-        private EmptySymbol() {
+    static class PlaceholderSymbol extends MappedSymbol {
+        private PlaceholderSymbol() {
             super(null, "mapper.unused", null, SymbolMap.class, null);
         }
 
         @Override
         public boolean compatibleWith(final Symbol other) {
-            return other instanceof EmptySymbol;
+            return other instanceof PlaceholderSymbol;
         }
 
         @Override
