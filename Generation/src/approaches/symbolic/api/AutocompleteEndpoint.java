@@ -15,7 +15,7 @@ public class AutocompleteEndpoint extends CachedEndpoint {
         List<String> completions = new ArrayList<>();
 
         // Assuming we are starting a new ludeme
-        for (FractionalCompiler.CompilationState state: cachedCompilation) {
+        for (FractionalCompiler.CompilationState state: compilationCheckpoint) {
             GenerationNode node = state.consistentGame;
             String tail = standardInput.substring(node.root().description().length());
 
@@ -212,7 +212,7 @@ public class AutocompleteEndpoint extends CachedEndpoint {
         StringBuilder sb = new StringBuilder();
         HashSet<String> completions = new HashSet<>();
 
-        if (!cachedCompilation.longest.isEmpty() && cachedCompilation.longest.get(0).consistentGame instanceof GameNode && cachedCompilation.longest.get(0).consistentGame.isRecursivelyComplete())
+        if (!compilationCheckpoint.longest.isEmpty() && compilationCheckpoint.longest.get(0).consistentGame instanceof GameNode && compilationCheckpoint.longest.get(0).consistentGame.isRecursivelyComplete())
             return "COMPLETE!";
 
         for (String completion : findCompletions(standardInput)) {
