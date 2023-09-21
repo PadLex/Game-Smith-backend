@@ -23,7 +23,7 @@ public class ConventionalCompilerEndpoint extends Endpoint {
     }
 
     @Override
-    String respond() {
+    public String respond() {
         Game game = null;
         try {
             game = (Game) Compiler.compile(new Description(rawInput), new UserSelections(new ArrayList<>()), new Report(), false);

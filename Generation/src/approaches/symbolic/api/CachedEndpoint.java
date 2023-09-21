@@ -17,7 +17,7 @@ public abstract class CachedEndpoint extends Endpoint {
     abstract String cachedResponse();
 
     @Override
-    String respond() {
+    public String respond() {
         standardInput = standardize(rawInput);
 
         if (cachedCompilation == null || cachedCompilation.longest.isEmpty()) {

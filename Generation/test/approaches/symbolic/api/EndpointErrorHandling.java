@@ -7,7 +7,7 @@ import java.io.ByteArrayInputStream;
 public class EndpointErrorHandling {
     static class ErrorClass extends Endpoint {
         @Override
-        String respond() {
+        public String respond() {
             if (rawInput.equals("Meh Input")) {
                 System.out.println("This is a print statement");
                 System.out.println("This is a consecutive print statement");

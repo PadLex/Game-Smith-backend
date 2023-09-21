@@ -24,16 +24,13 @@ public class ExpanderEndpoint extends Endpoint {
     }
 
     @Override
-    String respond() {
+    public String respond() {
         Description description = new Description(rawInput);
         try {
             Expander.expand(description, new UserSelections(new ArrayList<>()), new Report(), false);
-//            Compiler.compile(description, new UserSelections(new ArrayList<>()), new Report(), false);
         } catch (Exception exception) {
             throw new RuntimeException(exception);
         }
-
-//        System.out.println(description.expanded());
 
         return description.expanded();
     }

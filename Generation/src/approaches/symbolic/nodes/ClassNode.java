@@ -61,7 +61,7 @@ public class ClassNode extends GenerationNode {
             label = symbol.label + ":";
 
         String parameterString = String.join(" ", parameterSet.stream().filter(s -> !(s instanceof PlaceholderNode || s instanceof EndOfClauseNode)).map(GenerationNode::description).toList());
-        if (parameterString.length() > 0)
+        if (!parameterString.isEmpty())
             parameterString = " " + parameterString;
 
         String close = "";

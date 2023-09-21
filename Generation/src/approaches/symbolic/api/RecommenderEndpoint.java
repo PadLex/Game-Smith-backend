@@ -7,9 +7,8 @@ import GUI.RecommenderStarter;
  * Wrapper used by the VSCode extension to interact with the recommender system.
  */
 public class RecommenderEndpoint extends Endpoint {
-
     @Override
-    String respond() {
+    public String respond() {
         new RecommenderStarter();
         return "";
     }

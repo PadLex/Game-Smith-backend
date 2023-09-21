@@ -20,14 +20,10 @@ public class FractionalCompilerEndpoint extends CachedEndpoint {
     @Override
     String cachedResponse() {
         CompilationCheckpoint partialCompilation = compileFraction(standardInput, symbolMap);
-//        partialCompilation.longest.forEach(s -> System.out.println(s.consistentGame.root().nodeCount() + ": " + s.consistentGame.root().description()));
-//        partialCompilation.secondLongest.forEach(s -> System.out.println(s.consistentGame.root().nodeCount() + ": " + s.consistentGame.root().description()));
 
-//        partialCompilation.forEach(s -> System.out.println(s.consistentGame.root().description()));
         GameNode gameNode = partialCompilation.longest.get(0).consistentGame.root();
         String compilingPortion = gameNode.description();
         boolean compiles = partialCompilation.longest.get(0).exceptions.isEmpty() && gameNode.isRecursivelyComplete();
-//        System.out.println("Compiles:" + compiles);
         double eval = 0;
         try {
             if (compiles)
@@ -36,9 +32,7 @@ public class FractionalCompilerEndpoint extends CachedEndpoint {
             eval = 0;
             internalError.printStackTrace();
         }
-        
-        String response = (compiles ? "1":"0") + '|' + eval + "|" + destandardize(rawInput, compilingPortion);
-        log("Autocomplete response", response);
-        return response;
+
+        return (compiles ? "1":"0") + '|' + eval + "|" + destandardize(rawInput, compilingPortion);
     }
 }

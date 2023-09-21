@@ -10,15 +10,15 @@ public abstract class Endpoint {
     private static final PrintStream systemOut = System.out;
     private static final PrintStream systemErr = System.err;
 
-    String rawInput;
+    public String rawInput;
 
     String logFile = "cached-log.txt";
     boolean logToFile = true;
     String oldLogId;
 
-    abstract String respond();
+    public abstract String respond();
 
-    void start() {
+    public void start() {
         // Override System.out and System.err to log everything written to them
         if (logToFile) {
             System.setOut(createLoggingPrintStream("Print"));

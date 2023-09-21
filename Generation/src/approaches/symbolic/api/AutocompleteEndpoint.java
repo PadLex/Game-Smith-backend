@@ -15,7 +15,6 @@ public class AutocompleteEndpoint extends CachedEndpoint {
         List<String> completions = new ArrayList<>();
 
         // Assuming we are starting a new ludeme
-//        System.out.println(currentCompilation.longest.size() + " + " + currentCompilation.secondLongest.size());
         for (FractionalCompiler.CompilationState state: cachedCompilation) {
             GenerationNode node = state.consistentGame;
             String tail = standardInput.substring(node.root().description().length());
@@ -33,7 +32,6 @@ public class AutocompleteEndpoint extends CachedEndpoint {
                             else
                                 completion = completion.substring(tail.length() - 1);
                         }
-
 
                         if (tail.length() > 1)
                             addSpace = false;
@@ -111,16 +109,10 @@ public class AutocompleteEndpoint extends CachedEndpoint {
     //
     public List<GenerationNode> compatibleOptions(GenerationNode node, String tail) {
 
-//        System.out.println(node.root().description().length() + " - " + node.root().description());
-//        System.out.println(node.root().description().length() + " - " + node.root());
-//        System.out.println(tail);
-
         List<GenerationNode> completions = new ArrayList<>();
 
         for (GenerationNode option: node.nextPossibleParameters(symbolMap, null, false, true)) {
             assert !(option instanceof PlaceholderNode);
-
-//            System.out.println("option " + (option.symbol().label == null? "":option.symbol().label) + ":" + option);
 
             // Verify whether the option is compatible with the tail
             if (option instanceof PrimitiveNode primitiveOption) {
@@ -224,8 +216,6 @@ public class AutocompleteEndpoint extends CachedEndpoint {
             return "COMPLETE!";
 
         for (String completion : findCompletions(standardInput)) {
-            //assert option.root().description().startsWith(standardInput);
-
             if (!completions.contains(completion) && !completion.isEmpty()) {
                 completions.add(completion);
                 sb.append(completion).append("|").append("TODO").append("||");
@@ -235,12 +225,7 @@ public class AutocompleteEndpoint extends CachedEndpoint {
         if (sb.length() > 2)
             sb.delete(sb.length() - 2, sb.length());
 
-//        log("Autocomplete response", sb.toString());
         return sb.toString();
-    }
-
-    public static void main(String[] args) {
-        new AutocompleteEndpoint().start();
     }
 
     static class ContinuedPrimitive extends PrimitiveNode {
@@ -262,5 +247,9 @@ public class AutocompleteEndpoint extends CachedEndpoint {
         public String description() {
             return super.description().replace("NEW_", "CONTINUED_");
         }
+    }
+
+    public static void main(String[] args) {
+        new AutocompleteEndpoint().start();
     }
 }

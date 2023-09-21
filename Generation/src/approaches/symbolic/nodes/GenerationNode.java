@@ -257,10 +257,6 @@ public abstract class GenerationNode {
         return node;
     }
 
-//    public int nodeCount() {
-//        return 1 + parameterSet.stream().mapToInt(GenerationNode::nodeCount).sum();
-//    }
-
     public void stripTrailingPlaceholderNodes() {
         for (int i=parameterSet.size()-1; i >= 0; i--) {
             if (parameterSet.get(i) instanceof PlaceholderNode)

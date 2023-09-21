@@ -324,8 +324,6 @@ public class FractionalCompiler {
             option.setParent(newNode);
             newNode.addParameter(option);
 
-//            System.out.println(standardInput);
-//            System.out.println(newNode.root().description());
             if (!standardInput.startsWith(newNode.root().description()))
                 throw new MissmatchException("Now node does not match the input"); // TODO CHECK
 
@@ -337,8 +335,6 @@ public class FractionalCompiler {
             // option.description accounts for the label already
             if (!(option instanceof PlaceholderNode) && !(option instanceof EndOfClauseNode)) {
 
-//                System.out.println("trailingDescription:" + trailingDescription);
-//                System.out.println("option:" + option.description());
                 if (!trailingDescription.startsWith(option.description()))
                     throw new MissmatchException("Wrong class " + option.description());
 
