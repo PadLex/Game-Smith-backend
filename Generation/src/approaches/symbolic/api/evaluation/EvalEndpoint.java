@@ -33,14 +33,18 @@ public class EvalEndpoint extends Endpoint {
         if (game == null)
             return "-1";
 
-        Evaluation eval = new Evaluation();
         Report report = new Report();
-//        EvalGames.evaluateGame(eval, report, game, List.of(), "Random", 10, 0.1, 1000, List.of(new Balance(), new Completion()), new ArrayList<>(List.of(1d, 1d)), false);
+        double[] results = null;
 
-        if (report.isError())
+        try {
+            results = EvalGames.getEvaluationScores(game, List.of(new Balance(), new Completion(), new Drawishness(), new DurationTurns()), new ArrayList<>(List.of(1d, 1d, 1d, 1d)), "Random", 100, 0.1, 1000, false, true, report);
+        } catch (Exception ignored) {
+            return "-2";
+        }
+
+        if (report.isError() || results[3] < 2)
             return "-2";
 
-        double[] results = EvalGames.getEvaluationScores(game, List.of(new Balance(), new Completion(), new Drawishness(), new DurationTurns()), new ArrayList<>(List.of(1d, 1d, 1d, 1d)), "Random", 100, 0.1, 1000, false, true, report);
         return String.join("|", Arrays.stream(results).mapToObj(String::valueOf).toList());
     }
 }

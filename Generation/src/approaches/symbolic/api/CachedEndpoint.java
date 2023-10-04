@@ -51,6 +51,7 @@ public abstract class CachedEndpoint extends Endpoint {
                 System.out.println("Warning: " + compilationCache.longest.size() + " possible caches found for " + standardInput);
 
             String cachedDescription = compilationCache.longest.get(0).consistentGame.root().description();
+
             if (!standardInput.equals(cachedDescription)) {
                 if (standardInput.startsWith(cachedDescription))
                     compilationCheckpoint = FractionalCompiler.compileFraction(standardInput, compilationCache, symbolMap);

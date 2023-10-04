@@ -17,6 +17,8 @@ public class AutocompleteEndpoint extends CachedEndpoint {
         // Assuming we are starting a new ludeme
         for (FractionalCompiler.CompilationState state: compilationCheckpoint) {
             GenerationNode node = state.consistentGame;
+            if (node.root().description().length() > standardInput.length()) continue;
+
             String tail = standardInput.substring(node.root().description().length());
 
             for (GenerationNode option: compatibleOptions(node, tail)) {
@@ -144,6 +146,8 @@ public class AutocompleteEndpoint extends CachedEndpoint {
         if (tail.isEmpty())
             return primitiveOption;
 
+        System.out.println("tail:" + tail);
+
         String value;
 
         if (primitiveOption.symbol().label != null) {
@@ -176,21 +180,25 @@ public class AutocompleteEndpoint extends CachedEndpoint {
             case INT -> {
                 if (value.equals("-")) return new ContinuedPrimitive(primitiveOption);
                 try {
-                    Integer.parseInt(value);
-                    return new ContinuedPrimitive(primitiveOption);
+                    int n = Integer.parseInt(value);
+                    System.out.println("n:" + n);
+                    if (n >= -1000 && n < 1000)
+                        return new ContinuedPrimitive(primitiveOption);
                 } catch (NumberFormatException ignored) {}
             }
             case FLOAT -> {
                 if (value.equals("-")) return new ContinuedPrimitive(primitiveOption);
                 if (value.endsWith(".")) value = value.substring(0, value.length() - 1);
                 try {
-                    Float.parseFloat(value);
-                    return new ContinuedPrimitive(primitiveOption);
+                    float f = Float.parseFloat(value);
+                    if (f > -1000 && f < 1000)
+                        return new ContinuedPrimitive(primitiveOption);
                 } catch (NumberFormatException ignored) {}
             }
             case DIM -> {
                 try {
-                    if (Integer.parseInt(value) >= 0)
+                    int n = Integer.parseInt(value);
+                    if (n >= 0 && n < 1000)
                         return new ContinuedPrimitive(primitiveOption);
                 } catch (NumberFormatException ignored) {}
             }
@@ -199,7 +207,7 @@ public class AutocompleteEndpoint extends CachedEndpoint {
                     return new ContinuedPrimitive(primitiveOption);
             }
             case BOOLEAN -> {
-                if ("True".startsWith(value) || "False".startsWith(value))
+                if ("Tru".startsWith(value) || "Fals".startsWith(value))
                     return new ContinuedPrimitive(primitiveOption);
             }
         }
